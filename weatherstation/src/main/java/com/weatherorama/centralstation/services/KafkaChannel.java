@@ -8,13 +8,17 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.google.gson.Gson;
 import com.weatherorama.centralstation.interfaces.CentralStation;
 
 /**
  * KafkaChannel
  */
 public class KafkaChannel<K, V> implements CentralStation<K, V>{
+    private final Logger logger = LoggerFactory.getLogger(KafkaChannel.class);
     private final String topic;
     private KafkaProducer<String, String> producer;
 
@@ -32,18 +36,15 @@ public class KafkaChannel<K, V> implements CentralStation<K, V>{
     }
     @Override
     public void notify(K id, V data) {
-        this.producer.send(new ProducerRecord<String, String>(topic, id.toString(), data.toString()),
+        this.producer.send(new ProducerRecord<String, String>(topic, id.toString(), new Gson().toJson(data)),
                new Callback() {
                    public void onCompletion(RecordMetadata metadata, Exception e) {
                        if(e != null) {
-                          e.printStackTrace();
+                          logger.error(e.getMessage());
                        } else {
-                          System.out.println("The offset of the record we just sent is: " + metadata.offset());
+                          logger.info("The offset of the record we just sent is: " + metadata.offset());
                        }
                    }
                });
-               producer.flush();
     }
-
-    
 }
