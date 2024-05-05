@@ -15,6 +15,7 @@ public class WeatherStationTest {
     private WeatherSensor weatherSensor;
     private CentralStation<Long, StationStatus> centralStation;
 
+    @SuppressWarnings("unchecked")
     @BeforeEach
     public void setUp() {
         weatherStation = new WeatherStation();
