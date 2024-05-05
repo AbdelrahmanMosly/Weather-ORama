@@ -1,10 +1,10 @@
-package com.weatherorama.WeatherStation.Mocks;
+package com.weatherorama.weatherstation.mocks;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.weatherorama.WeatherStation.Interfaces.WeatherSensor;
-import com.weatherorama.WeatherStation.Models.SensorReadings;
+import com.weatherorama.weatherstation.interfaces.WeatherSensor;
+import com.weatherorama.weatherstation.models.SensorReadings;
 
 public class MockWeatherSensor implements WeatherSensor{
     private final Logger logger = LoggerFactory.getLogger(MockWeatherSensor.class);

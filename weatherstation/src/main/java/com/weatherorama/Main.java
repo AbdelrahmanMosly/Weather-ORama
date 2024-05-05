@@ -8,9 +8,9 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.weatherorama.WeatherStation.Mocks.MockCentralStation;
-import com.weatherorama.WeatherStation.Mocks.MockWeatherSensor;
-import com.weatherorama.WeatherStation.Services.WeatherStation;
+import com.weatherorama.centralstation.mocks.MockCentralStation;
+import com.weatherorama.weatherstation.mocks.MockWeatherSensor;
+import com.weatherorama.weatherstation.services.WeatherStation;
 
 
 

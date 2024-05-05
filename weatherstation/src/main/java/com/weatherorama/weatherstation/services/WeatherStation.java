@@ -1,12 +1,12 @@
-package com.weatherorama.WeatherStation.Services;
+package com.weatherorama.weatherstation.services;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.weatherorama.WeatherStation.Interfaces.CentralStation;
-import com.weatherorama.WeatherStation.Interfaces.WeatherSensor;
-import com.weatherorama.WeatherStation.Models.SensorReadings;
-import com.weatherorama.WeatherStation.Models.WeatherData;
+import com.weatherorama.centralstation.interfaces.CentralStation;
+import com.weatherorama.weatherstation.interfaces.WeatherSensor;
+import com.weatherorama.weatherstation.models.SensorReadings;
+import com.weatherorama.weatherstation.models.WeatherData;
 
 
 public class WeatherStation {
