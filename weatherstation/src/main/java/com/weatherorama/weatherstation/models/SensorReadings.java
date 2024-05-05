@@ -39,6 +39,12 @@ public class SensorReadings {
     public String toString() {
         return "SensorReadings [humidity=" + humidity + ", temperature=" + temperature + ", windSpeed=" + windSpeed
                 + "]";
+    }
+
+    public void load(OpenMeteoResponse openMeteoResponse) {
+        this.humidity = openMeteoResponse.getCurrent().getRelative_humidity_2m();
+        this.temperature = (int) (openMeteoResponse.getCurrent().getTemperature_2m() + 0.5);
+        this.windSpeed = (int) (openMeteoResponse.getCurrent().getWind_speed_10m() + 0.5);
     } 
     
 }

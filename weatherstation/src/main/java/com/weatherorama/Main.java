@@ -11,9 +11,10 @@ import org.slf4j.LoggerFactory;
 import com.weatherorama.centralstation.interfaces.CentralStation;
 import com.weatherorama.centralstation.services.KafkaChannel;
 import com.weatherorama.centralstation.services.MsgDropChannel;
-import com.weatherorama.weatherstation.mocks.MockWeatherSensor;
 import com.weatherorama.weatherstation.models.StationStatus;
+import com.weatherorama.weatherstation.services.OpenMeteoService;
 import com.weatherorama.weatherstation.services.WeatherStation;
+import com.weatherorama.weatherstation.services.WeatherStationBuilder;
 
 
 
@@ -23,14 +24,26 @@ public class Main {
 
         Properties appProps = loadProperties(logger);
 
-        long pollEvery = Long.parseLong(appProps.getProperty("pollEvery", "1000"));
-        long stationID = Long.parseLong(appProps.getProperty("stationID", "0"));
         String kafkaTopic = appProps.getProperty("kafkaTopic", "test");
         String kafkaBroker = appProps.getProperty("kafkaBroker", "localhost:9094");
         int dropRate = Integer.parseInt(appProps.getProperty("dropRate", "10"));
+
         CentralStation<Long, StationStatus> channel = new MsgDropChannel<>(new KafkaChannel<>(kafkaBroker, kafkaTopic), dropRate);
-        WeatherStation weatherStation = new WeatherStation(stationID, new MockWeatherSensor(), channel);
+
+
+        long stationID = Long.parseLong(appProps.getProperty("stationID", "0"));
+        double longitude = Double.parseDouble(appProps.getProperty("stationLongitude", "47.1915"));
+        double latitude = Double.parseDouble(appProps.getProperty("stationLatitude", "52.8371"));
+
+        WeatherStation weatherStation = new WeatherStationBuilder()
+                                                .stationId(stationID)
+                                                .latitude(latitude)
+                                                .longitude(longitude)
+                                                .centralStation(channel)
+                                                .weatherSensor(new OpenMeteoService())
+                                                .build();
         
+        long pollEvery = Long.parseLong(appProps.getProperty("pollEvery", "1000"));
         while(true){
             weatherStation.invoke();
             Thread.sleep(pollEvery);

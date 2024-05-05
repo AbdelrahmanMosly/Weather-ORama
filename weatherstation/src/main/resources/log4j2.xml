@@ -24,7 +24,9 @@
     <Logger name="com.weatherorama.centralstation.services.MsgDropChannel" level="info" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger> 
-    
+     <Logger name="com.weatherorama.weatherstation.services.OpenMeteoService" level="info" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>    
     <Root level="error">
       <AppenderRef ref="Console"/>
     </Root>

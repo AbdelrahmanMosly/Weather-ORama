@@ -13,17 +13,23 @@ import com.weatherorama.weatherstation.models.StationStatus;
 
 public class WeatherStation {
     private static Logger logger = LoggerFactory.getLogger((WeatherStation.class));
-    private final WeatherSensor weatherSensor;
-    private final CentralStation<Long, StationStatus> centralStation;
-    private final long stationID;
-    private long currentStatusNo;
     private Random rng;
+    private long currentStatusNo;
 
-    public WeatherStation(long stationID, WeatherSensor weatherSensor,
-                            CentralStation<Long, StationStatus> centralStation){
-        this.stationID = stationID;
-        this.weatherSensor = weatherSensor;
-        this.centralStation = centralStation;
+    private long stationID;
+    private WeatherSensor weatherSensor;
+    private CentralStation<Long, StationStatus> centralStation;
+    private double longitude, latitude;
+    
+    // public WeatherStation(long stationID, WeatherSensor weatherSensor,
+    //                         CentralStation<Long, StationStatus> centralStation){
+    //     this.stationID = stationID;
+    //     this.weatherSensor = weatherSensor;
+    //     this.centralStation = centralStation;
+    //     this.rng = new Random(System.currentTimeMillis());
+    // }
+
+    public WeatherStation() {
         this.rng = new Random(System.currentTimeMillis());
     }
 
@@ -47,6 +53,47 @@ public class WeatherStation {
         }
         return batteryStatus;
     }
+
+    public long getStationID() {
+        return stationID;
+    }
+
+    public void setStationID(long stationID) {
+        this.stationID = stationID;
+    }
+
+    public WeatherSensor getWeatherSensor() {
+        return weatherSensor;
+    }
+
+    public void setWeatherSensor(WeatherSensor weatherSensor) {
+        this.weatherSensor = weatherSensor;
+    }
+
+    public CentralStation<Long, StationStatus> getCentralStation() {
+        return centralStation;
+    }
+
+    public void setCentralStation(CentralStation<Long, StationStatus> centralStation) {
+        this.centralStation = centralStation;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+    
 
     
 }

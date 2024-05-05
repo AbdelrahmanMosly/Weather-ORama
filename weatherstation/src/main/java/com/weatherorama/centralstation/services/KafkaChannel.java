@@ -11,7 +11,9 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.weatherorama.centralstation.interfaces.CentralStation;
 
 /**
@@ -21,6 +23,7 @@ public class KafkaChannel<K, V> implements CentralStation<K, V>{
     private final Logger logger = LoggerFactory.getLogger(KafkaChannel.class);
     private final String topic;
     private KafkaProducer<String, String> producer;
+    private Gson gson;
 
     public KafkaChannel(String kafkaEndpoint, String topic){
         this.topic = topic;
@@ -33,10 +36,13 @@ public class KafkaChannel<K, V> implements CentralStation<K, V>{
                                 StringSerializer.class.getName());
 
         this.producer = new KafkaProducer<String, String>(properties);
+        this.gson = new GsonBuilder()
+                        .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+                        .create();
     }
     @Override
     public void notify(K id, V data) {
-        this.producer.send(new ProducerRecord<String, String>(topic, id.toString(), new Gson().toJson(data)),
+        this.producer.send(new ProducerRecord<String, String>(topic, id.toString(), this.gson.toJson(data)),
                new Callback() {
                    public void onCompletion(RecordMetadata metadata, Exception e) {
                        if(e != null) {

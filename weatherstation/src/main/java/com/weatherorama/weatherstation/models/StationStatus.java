@@ -1,13 +1,13 @@
 package com.weatherorama.weatherstation.models;
 
 public class StationStatus {
-    private long stationID, sNo, statusTimestamp;
+    private long stationId, sNo, statusTimestamp;
     private String batteryStatus;
     private SensorReadings weather;
     
    public StationStatus(long stationID, long sNo, String batteryStatus, SensorReadings weather) {
         this.weather = weather;
-        this.stationID = stationID;
+        this.stationId = stationID;
         this.sNo = sNo;
         this.batteryStatus = batteryStatus;
         this.statusTimestamp = System.currentTimeMillis();
@@ -21,11 +21,11 @@ public class StationStatus {
     public void setWeather(SensorReadings weather) {
         this.weather = weather;
     }
-    public long getStationID() {
-        return stationID;
+    public long getStationId() {
+        return stationId;
     }
-    public void setStationID(long stationID) {
-        this.stationID = stationID;
+    public void setStationId(long stationID) {
+        this.stationId = stationID;
     }
     public long getsNo() {
         return sNo;
@@ -47,7 +47,7 @@ public class StationStatus {
     }
     @Override
     public String toString() {
-        return "StationStatus [stationID=" + stationID + ", sNo=" + sNo + ", statusTimestamp=" + statusTimestamp
+        return "StationStatus [stationID=" + stationId + ", sNo=" + sNo + ", statusTimestamp=" + statusTimestamp
                 + ", batteryStatus=" + batteryStatus + ", weather=" + weather + "]";
     }
     
