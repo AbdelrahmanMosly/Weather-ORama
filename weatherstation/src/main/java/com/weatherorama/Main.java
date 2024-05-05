@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import com.weatherorama.centralstation.interfaces.CentralStation;
 import com.weatherorama.centralstation.services.KafkaChannel;
 import com.weatherorama.centralstation.services.MsgDropChannel;
+import com.weatherorama.centralstation.services.ValidationChannel;
 import com.weatherorama.weatherstation.models.StationStatus;
 import com.weatherorama.weatherstation.services.OpenMeteoService;
 import com.weatherorama.weatherstation.services.WeatherStation;
@@ -28,13 +29,20 @@ public class Main {
         String kafkaBroker = appProps.getProperty("kafkaBroker", "localhost:9094");
         int dropRate = Integer.parseInt(appProps.getProperty("dropRate", "10"));
 
-        CentralStation<Long, StationStatus> channel = new MsgDropChannel<>(new KafkaChannel<>(kafkaBroker, kafkaTopic), dropRate);
+        CentralStation<Long, StationStatus> channel = new KafkaChannel<>(kafkaBroker, kafkaTopic);
+        channel = new MsgDropChannel<>(channel, dropRate);
+        channel = new ValidationChannel<Long, StationStatus>(channel);
 
 
         long stationID = Long.parseLong(appProps.getProperty("stationID", "0"));
         double longitude = Double.parseDouble(appProps.getProperty("stationLongitude", "47.1915"));
         double latitude = Double.parseDouble(appProps.getProperty("stationLatitude", "52.8371"));
         String weatherAPI = appProps.getProperty("weatherAPI");
+
+        if(weatherAPI == null){
+            logger.error("No weather API was given. The station will shutdown");
+            System.exit(1);
+        }
 
         WeatherStation weatherStation = new WeatherStationBuilder()
                                                 .stationId(stationID)

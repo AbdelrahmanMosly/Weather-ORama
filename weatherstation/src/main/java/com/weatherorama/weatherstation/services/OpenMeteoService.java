@@ -69,7 +69,7 @@ public class OpenMeteoService implements WeatherSensor{
                 logger.info("An error occured while reading the data.");
             }
         } catch (IOException e) {
-            logger.error(e.getMessage());
+            logger.error(e.toString());
         }
         return readings;
     }

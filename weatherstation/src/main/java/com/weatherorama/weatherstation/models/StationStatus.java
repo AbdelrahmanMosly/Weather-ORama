@@ -1,6 +1,8 @@
 package com.weatherorama.weatherstation.models;
 
-public class StationStatus {
+import com.weatherorama.weatherstation.interfaces.Valid;
+
+public class StationStatus implements Valid{
     private long stationId, sNo, statusTimestamp;
     private String batteryStatus;
     private SensorReadings weather;
@@ -49,6 +51,10 @@ public class StationStatus {
     public String toString() {
         return "StationStatus [stationID=" + stationId + ", sNo=" + sNo + ", statusTimestamp=" + statusTimestamp
                 + ", batteryStatus=" + batteryStatus + ", weather=" + weather + "]";
+    }
+    @Override
+    public boolean isValid() {
+        return weather.isValid();
     }
     
 }

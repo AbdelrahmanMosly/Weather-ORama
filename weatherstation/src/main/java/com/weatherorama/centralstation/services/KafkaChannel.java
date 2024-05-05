@@ -64,7 +64,7 @@ public class KafkaChannel<K, V> implements CentralStation<K, V>{
                new Callback() {
                    public void onCompletion(RecordMetadata metadata, Exception e) {
                        if(e != null) {
-                          logger.error(e.getMessage());
+                          logger.error(e.toString());
                        } else {
                           logger.info("The offset of the record we just sent is: " + metadata.offset());
                        }
