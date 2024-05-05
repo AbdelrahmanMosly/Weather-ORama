@@ -63,19 +63,4 @@ public class WeatherStationTest {
         assertEquals(centralStation, weatherStation.getCentralStation());
     }
 
-    @Test
-    public void testGetLongitude() {
-        double longitude = 1.2345;
-        weatherStation.setLongitude(longitude);
-
-        assertEquals(longitude, weatherStation.getLongitude());
-    }
-
-    @Test
-    public void testGetLatitude() {
-        double latitude = 5.6789;
-        weatherStation.setLatitude(latitude);
-
-        assertEquals(latitude, weatherStation.getLatitude());
-    }
 }

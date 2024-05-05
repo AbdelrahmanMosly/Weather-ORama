@@ -23,16 +23,29 @@ public class OpenMeteoService implements WeatherSensor{
     private final Logger logger = LoggerFactory.getLogger(OpenMeteoService.class);
 
     private final OkHttpClient httpClient;
-    private final String BASE_URL;
     private Gson gson;
+
+    private final Request request;
      
     /**
      * Constructs a new OpenMeteoService object.
      * Initializes the OkHttpClient, base URL, and Gson object.
      */
-    public OpenMeteoService(){
+    public OpenMeteoService(String base_url, double longitude, double latitude){
         this.httpClient = new OkHttpClient();
-        this.BASE_URL = "https://api.open-meteo.com/v1/forecast";
+                       
+        HttpUrl.Builder urlBuilder  = HttpUrl.parse(base_url).newBuilder();
+
+        HttpUrl httpUrl = urlBuilder.addQueryParameter("latitude", String.valueOf(latitude))
+                                    .addQueryParameter("longitude", String.valueOf(longitude))
+                                    .addQueryParameter("current", "temperature_2m,relative_humidity_2m,wind_speed_10m")
+                                    .addQueryParameter("temperature_unit", "fahrenheit")
+                                    .build();
+
+        this.request = new Request.Builder()
+                                    .url(httpUrl)
+                                    .get()
+                                    .build();
         this.gson = new GsonBuilder()
                         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
                         .create();
@@ -40,23 +53,11 @@ public class OpenMeteoService implements WeatherSensor{
 
     @Override
     public SensorReadings getReadings() {
-
-        HttpUrl.Builder urlBuilder  = HttpUrl.parse(this.BASE_URL).newBuilder();
-        HttpUrl httpUrl = urlBuilder.addQueryParameter("latitude", "52.52")
-                                    .addQueryParameter("longitude", "13.41")
-                                    .addQueryParameter("current", "temperature_2m,relative_humidity_2m,wind_speed_10m")
-                                    .addQueryParameter("temperature_unit", "fahrenheit")
-                                    .build();
-        Request request = new Request.Builder()
-                                    .url(httpUrl)
-                                    .get()
-                                    .build();
-                                    
         SensorReadings readings = new SensorReadings();
         try {
             logger.info("Reading Data...");
 
-            Response response = httpClient.newCall(request).execute();
+            Response response = httpClient.newCall(this.request).execute();
             if(response.isSuccessful()){
                 logger.info("Data was read successfuly.");
                 String responseBody = response.body().string();

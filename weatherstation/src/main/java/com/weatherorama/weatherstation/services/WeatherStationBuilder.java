@@ -16,16 +16,6 @@ public class WeatherStationBuilder {
         return this;
     }
 
-    public WeatherStationBuilder longitude(double longitude){
-        this.weatherStation.setLongitude(longitude);
-        return this;
-    }
-
-    public WeatherStationBuilder latitude(double latitude){
-        this.weatherStation.setLatitude(latitude);
-        return this;
-    }
-
     public WeatherStationBuilder centralStation(CentralStation<Long, StationStatus> centralStation){
         this.weatherStation.setCentralStation(centralStation);
         return this;

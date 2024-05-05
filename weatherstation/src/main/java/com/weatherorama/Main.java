@@ -34,16 +34,16 @@ public class Main {
         long stationID = Long.parseLong(appProps.getProperty("stationID", "0"));
         double longitude = Double.parseDouble(appProps.getProperty("stationLongitude", "47.1915"));
         double latitude = Double.parseDouble(appProps.getProperty("stationLatitude", "52.8371"));
+        String weatherAPI = appProps.getProperty("weatherAPI");
 
         WeatherStation weatherStation = new WeatherStationBuilder()
                                                 .stationId(stationID)
-                                                .latitude(latitude)
-                                                .longitude(longitude)
                                                 .centralStation(channel)
-                                                .weatherSensor(new OpenMeteoService())
+                                                .weatherSensor(new OpenMeteoService(weatherAPI, longitude, latitude))
                                                 .build();
         
         long pollEvery = Long.parseLong(appProps.getProperty("pollEvery", "1000"));
+        
         while(true){
             weatherStation.invoke();
             Thread.sleep(pollEvery);

@@ -22,7 +22,6 @@ public class WeatherStation {
     private long stationID;
     private WeatherSensor weatherSensor;
     private CentralStation<Long, StationStatus> centralStation;
-    private double longitude, latitude;
 
     /**
      * Constructs a new WeatherStation object.
@@ -105,37 +104,5 @@ public class WeatherStation {
      */
     public void setCentralStation(CentralStation<Long, StationStatus> centralStation) {
         this.centralStation = centralStation;
-    }
-
-    /**
-     * Returns the longitude of the weather station.
-     * @return the longitude
-     */
-    public double getLongitude() {
-        return longitude;
-    }
-
-    /**
-     * Sets the longitude of the weather station.
-     * @param longitude the longitude to set
-     */
-    public void setLongitude(double longitude) {
-        this.longitude = longitude;
-    }
-
-    /**
-     * Returns the latitude of the weather station.
-     * @return the latitude
-     */
-    public double getLatitude() {
-        return latitude;
-    }
-
-    /**
-     * Sets the latitude of the weather station.
-     * @param latitude the latitude to set
-     */
-    public void setLatitude(double latitude) {
-        this.latitude = latitude;
     }
 }
