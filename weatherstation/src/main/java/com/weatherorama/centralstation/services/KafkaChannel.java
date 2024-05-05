@@ -19,12 +19,24 @@ import com.weatherorama.centralstation.interfaces.CentralStation;
 /**
  * KafkaChannel
  */
+/**
+ * A class that represents a Kafka channel for sending data to a central station.
+ *
+ * @param <K> The type of the key used for sending data.
+ * @param <V> The type of the value used for sending data.
+ */
 public class KafkaChannel<K, V> implements CentralStation<K, V>{
     private final Logger logger = LoggerFactory.getLogger(KafkaChannel.class);
     private final String topic;
     private KafkaProducer<String, String> producer;
     private Gson gson;
 
+    /**
+     * Constructs a new KafkaChannel with the specified Kafka endpoint and topic.
+     *
+     * @param kafkaEndpoint the Kafka endpoint to connect to
+     * @param topic the topic to produce messages to
+     */
     public KafkaChannel(String kafkaEndpoint, String topic){
         this.topic = topic;
         Properties properties = new Properties();
@@ -40,6 +52,12 @@ public class KafkaChannel<K, V> implements CentralStation<K, V>{
                         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
                         .create();
     }
+    /**
+     * Notifies the Kafka channel with the specified key and value.
+     * 
+     * @param id The key to be sent to the Kafka channel.
+     * @param data The value to be sent to the Kafka channel.
+     */
     @Override
     public void notify(K id, V data) {
         this.producer.send(new ProducerRecord<String, String>(topic, id.toString(), this.gson.toJson(data)),
