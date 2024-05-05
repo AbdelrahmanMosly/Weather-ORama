@@ -14,12 +14,13 @@ import com.weatherorama.weatherstation.models.StationStatus;
 public class WeatherStation {
     private static Logger logger = LoggerFactory.getLogger((WeatherStation.class));
     private final WeatherSensor weatherSensor;
-    private final CentralStation centralStation;
+    private final CentralStation<Long, StationStatus> centralStation;
     private final long stationID;
     private long currentStatusNo;
     private Random rng;
 
-    public WeatherStation(long stationID, WeatherSensor weatherSensor, CentralStation centralStation){
+    public WeatherStation(long stationID, WeatherSensor weatherSensor,
+                            CentralStation<Long, StationStatus> centralStation){
         this.stationID = stationID;
         this.weatherSensor = weatherSensor;
         this.centralStation = centralStation;
@@ -33,7 +34,7 @@ public class WeatherStation {
 
         StationStatus data = new StationStatus(this.stationID, this.currentStatusNo++,
                                                 this.getBatteryStatus(), readings);
-        centralStation.notify(data);
+        centralStation.notify(this.stationID, data);
     }
 
     String getBatteryStatus(){

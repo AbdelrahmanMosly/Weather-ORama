@@ -1,7 +1,5 @@
 package com.weatherorama.centralstation.interfaces;
 
-import com.weatherorama.weatherstation.models.StationStatus;
-
-public interface CentralStation {
-    void notify(StationStatus data);
+public interface CentralStation <K, V>{
+    void notify(K id, V data);
 }
