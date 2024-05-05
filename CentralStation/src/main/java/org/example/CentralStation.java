@@ -1,5 +1,6 @@
 package org.example;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Properties;
@@ -9,15 +10,28 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.example.DTO.WeatherStatusDTO;
+import org.example.entity.WeatherStatus;
 
 
 public class CentralStation {
+    //WeatherStatusDTO weatherStatusDTO = new WeatherStatusDTO("src/main/resources/weather-status.avsc");
+    WeatherStatusDTO weatherStatusDTO = new WeatherStatusDTO();
 
-    private void processMessage(byte[] message){
+    private void process(byte[] message){
         System.out.println("Received message: " + new String(message));
+        try {
+            WeatherStatus weatherStatus = weatherStatusDTO.deserialize(message);
+            //bitcask
+            //elasticSearch
+            //parquet
+            System.out.println(weatherStatus.toString());
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
-    private void consumeMessages(){
+    private void consume(){
         Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092");
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "my-consumer-group");
@@ -30,13 +44,13 @@ public class CentralStation {
         props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "1000"); // Auto-commit interval in milliseconds
 
         KafkaConsumer<String, byte[]> consumer = new KafkaConsumer<>(props);
-        try (consumer) {
-            consumer.subscribe(Collections.singletonList("my-topic"));
+        consumer.subscribe(Collections.singletonList("my-topic"));
+        try{
             while (true) {
                 ConsumerRecords<String, byte[]> records = consumer.poll(Duration.ofMillis(500));
-                records.forEach(record -> processMessage(record.value()));
+                records.forEach(record -> process(record.value()));
             }
-        } finally {
+        }finally {
             consumer.close();
         }
     }
@@ -45,6 +59,6 @@ public class CentralStation {
     public static void main(String[] args) {
         System.out.println("Hello world!");
         CentralStation centralStation = new CentralStation();
-        centralStation.consumeMessages();
+        centralStation.consume();
     }
 }
