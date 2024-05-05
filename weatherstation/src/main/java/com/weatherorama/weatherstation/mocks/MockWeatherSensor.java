@@ -12,7 +12,14 @@ public class MockWeatherSensor implements WeatherSensor{
     @Override
     public SensorReadings getReadings() {
         logger.info("Reading Data...");
-        return new SensorReadings();
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        SensorReadings sensorReadings = new SensorReadings();
+        logger.info(sensorReadings.toString());
+        return sensorReadings;
     }
     
 }

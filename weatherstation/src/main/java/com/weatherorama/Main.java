@@ -21,8 +21,8 @@ public class Main {
         Properties appProps = loadProperties(logger);
 
         long pollEvery = Long.parseLong(appProps.getProperty("pollEvery", "1000"));
-
-        WeatherStation weatherStation = new WeatherStation(new MockWeatherSensor(), new MockCentralStation());
+        long stationID = Long.parseLong(appProps.getProperty("stationID", "0"));
+        WeatherStation weatherStation = new WeatherStation(stationID, new MockWeatherSensor(), new MockCentralStation());
         
         while(true){
             weatherStation.invoke();
