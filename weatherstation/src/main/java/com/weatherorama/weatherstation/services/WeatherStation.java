@@ -11,6 +11,9 @@ import com.weatherorama.weatherstation.models.SensorReadings;
 import com.weatherorama.weatherstation.models.StationStatus;
 
 
+/**
+ * The WeatherStation class represents a weather station that collects and sends weather data to a central station.
+ */
 public class WeatherStation {
     private static Logger logger = LoggerFactory.getLogger((WeatherStation.class));
     private Random rng;
@@ -20,19 +23,17 @@ public class WeatherStation {
     private WeatherSensor weatherSensor;
     private CentralStation<Long, StationStatus> centralStation;
     private double longitude, latitude;
-    
-    // public WeatherStation(long stationID, WeatherSensor weatherSensor,
-    //                         CentralStation<Long, StationStatus> centralStation){
-    //     this.stationID = stationID;
-    //     this.weatherSensor = weatherSensor;
-    //     this.centralStation = centralStation;
-    //     this.rng = new Random(System.currentTimeMillis());
-    // }
 
+    /**
+     * Constructs a new WeatherStation object.
+     */
     public WeatherStation() {
         this.rng = new Random(System.currentTimeMillis());
     }
 
+    /**
+     * Invokes the weather station to collect data and send it to the central station.
+     */
     public void invoke(){
         logger.info("Collecting Data...");
         SensorReadings readings = weatherSensor.getReadings();
@@ -43,6 +44,10 @@ public class WeatherStation {
         centralStation.notify(this.stationID, data);
     }
 
+    /**
+     * Returns the battery status of the weather station.
+     * @return the battery status (low, medium, or high)
+     */
     String getBatteryStatus(){
         int rn = this.rng.nextInt(10);
         String batteryStatus = "medium";
@@ -54,46 +59,83 @@ public class WeatherStation {
         return batteryStatus;
     }
 
+    /**
+     * Returns the station ID of the weather station.
+     * @return the station ID
+     */
     public long getStationID() {
         return stationID;
     }
 
+    /**
+     * Sets the station ID of the weather station.
+     * @param stationID the station ID to set
+     */
     public void setStationID(long stationID) {
         this.stationID = stationID;
     }
 
+    /**
+     * Returns the weather sensor of the weather station.
+     * @return the weather sensor
+     */
     public WeatherSensor getWeatherSensor() {
         return weatherSensor;
     }
 
+    /**
+     * Sets the weather sensor of the weather station.
+     * @param weatherSensor the weather sensor to set
+     */
     public void setWeatherSensor(WeatherSensor weatherSensor) {
         this.weatherSensor = weatherSensor;
     }
 
+    /**
+     * Returns the central station of the weather station.
+     * @return the central station
+     */
     public CentralStation<Long, StationStatus> getCentralStation() {
         return centralStation;
     }
 
+    /**
+     * Sets the central station of the weather station.
+     * @param centralStation the central station to set
+     */
     public void setCentralStation(CentralStation<Long, StationStatus> centralStation) {
         this.centralStation = centralStation;
     }
 
+    /**
+     * Returns the longitude of the weather station.
+     * @return the longitude
+     */
     public double getLongitude() {
         return longitude;
     }
 
+    /**
+     * Sets the longitude of the weather station.
+     * @param longitude the longitude to set
+     */
     public void setLongitude(double longitude) {
         this.longitude = longitude;
     }
 
+    /**
+     * Returns the latitude of the weather station.
+     * @return the latitude
+     */
     public double getLatitude() {
         return latitude;
     }
 
+    /**
+     * Sets the latitude of the weather station.
+     * @param latitude the latitude to set
+     */
     public void setLatitude(double latitude) {
         this.latitude = latitude;
     }
-    
-
-    
 }

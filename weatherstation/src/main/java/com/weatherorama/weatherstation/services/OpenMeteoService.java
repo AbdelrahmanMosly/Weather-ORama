@@ -16,6 +16,9 @@ import com.weatherorama.weatherstation.interfaces.WeatherSensor;
 import com.weatherorama.weatherstation.models.OpenMeteoResponse;
 import com.weatherorama.weatherstation.models.SensorReadings;
 
+/**
+ * A service class that implements the WeatherSensor interface and provides weather readings using the OpenMeteo API.
+ */
 public class OpenMeteoService implements WeatherSensor{
     private final Logger logger = LoggerFactory.getLogger(OpenMeteoService.class);
 
@@ -23,6 +26,10 @@ public class OpenMeteoService implements WeatherSensor{
     private final String BASE_URL;
     private Gson gson;
      
+    /**
+     * Constructs a new OpenMeteoService object.
+     * Initializes the OkHttpClient, base URL, and Gson object.
+     */
     public OpenMeteoService(){
         this.httpClient = new OkHttpClient();
         this.BASE_URL = "https://api.open-meteo.com/v1/forecast";
