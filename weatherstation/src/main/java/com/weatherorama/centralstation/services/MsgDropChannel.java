@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 import com.weatherorama.centralstation.interfaces.CentralStation;
 
 /**
- * ErroneousChannel
+ * MsgDropChannel
  */
 public class MsgDropChannel<K, V> implements CentralStation<K, V>{
     private final Logger logger = LoggerFactory.getLogger(MsgDropChannel.class); 
