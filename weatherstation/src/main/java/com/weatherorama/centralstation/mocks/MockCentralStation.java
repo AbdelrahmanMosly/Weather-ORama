@@ -1,4 +1,4 @@
-package com.weatherorama.weatherstation.mocks;
+package com.weatherorama.centralstation.mocks;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
