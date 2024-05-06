@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import com.weatherorama.centralstation.interfaces.CentralStation;
 import com.weatherorama.centralstation.services.KafkaChannel;
 import com.weatherorama.centralstation.services.MsgDropChannel;
-import com.weatherorama.centralstation.services.ValidationChannel;
 import com.weatherorama.weatherstation.models.StationStatus;
 import com.weatherorama.weatherstation.services.OpenMeteoService;
 import com.weatherorama.weatherstation.services.WeatherStation;
@@ -31,7 +30,6 @@ public class Main {
 
         CentralStation<Long, StationStatus> channel = new KafkaChannel<>(kafkaBroker, kafkaTopic);
         channel = new MsgDropChannel<>(channel, dropRate);
-        channel = new ValidationChannel<Long, StationStatus>(channel);
 
 
         long stationID = Long.parseLong(appProps.getProperty("stationID", "0"));

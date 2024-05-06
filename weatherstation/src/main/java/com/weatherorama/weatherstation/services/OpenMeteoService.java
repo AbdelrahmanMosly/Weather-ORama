@@ -15,6 +15,7 @@ import com.squareup.okhttp.Response;
 import com.weatherorama.weatherstation.interfaces.WeatherSensor;
 import com.weatherorama.weatherstation.models.OpenMeteoResponse;
 import com.weatherorama.weatherstation.models.SensorReadings;
+import com.weatherorama.weatherstation.models.Weather;
 
 /**
  * A service class that implements the WeatherSensor interface and provides weather readings using the OpenMeteo API.
@@ -63,7 +64,7 @@ public class OpenMeteoService implements WeatherSensor{
                 String responseBody = response.body().string();
                 logger.debug(responseBody);
                 OpenMeteoResponse mappedResponse = this.gson.fromJson(responseBody, OpenMeteoResponse.class);
-                readings.load(mappedResponse);
+                readings.setWeather(new Weather(mappedResponse.getCurrent()));
 
             }else{
                 logger.info("An error occured while reading the data.");

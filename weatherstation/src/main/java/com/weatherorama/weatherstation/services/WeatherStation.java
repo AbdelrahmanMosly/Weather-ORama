@@ -36,10 +36,14 @@ public class WeatherStation {
     public void invoke(){
         logger.info("Collecting Data...");
         SensorReadings readings = weatherSensor.getReadings();
+        if(!readings.isValid()){
+            logger.error("Recieved Invalid Reading. The Status won't be sent.");
+            return;
+        }
         logger.info("Sending Data to Central Station...");
 
         StationStatus data = new StationStatus(this.stationID, this.currentStatusNo++,
-                                                this.getBatteryStatus(), readings);
+                                                this.getBatteryStatus(), readings.getWeather());
         centralStation.notify(this.stationID, data);
     }
 
