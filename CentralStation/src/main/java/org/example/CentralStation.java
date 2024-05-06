@@ -64,7 +64,9 @@ public class CentralStation {
     public static void main(String[] args) {
         {
             try {
-                archiver = new WeatherStatusArchiver("/home/abdelrahman/parquet-files");
+                String homeDirectory = System.getProperty("user.home");
+                String parquetFilesDirectory = homeDirectory + "/parquet-files";
+                archiver = new WeatherStatusArchiver(parquetFilesDirectory);
                 consume();
             } catch (IOException e) {
                 System.err.println("Error initializing WeatherStatusArchiver: " + e.getMessage());
