@@ -41,6 +41,7 @@ public class CentralStation {
             while (true) {
                 List<WeatherStatus> records = channel.consume();
                 records.forEach(CentralStation::process);
+
             }
         } catch (Exception e) {
             System.err.println("Error consuming messages" + e.getMessage());
