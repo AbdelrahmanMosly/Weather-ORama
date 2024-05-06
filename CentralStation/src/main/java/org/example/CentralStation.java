@@ -56,11 +56,6 @@ public class CentralStation {
         } catch (Exception e) {
             System.err.println("Error consuming messages" + e.getMessage());
         } finally {
-            try {
-                archiver.close();
-            } catch (IOException e) {
-                System.err.println("Error closing WeatherStatusArchiver: " + e.getMessage());
-            }
             channel.cleanUp();
         }
     }
@@ -69,7 +64,7 @@ public class CentralStation {
     public static void main(String[] args) {
         {
             try {
-                archiver = new WeatherStatusArchiver("~/parquet-files");
+                archiver = new WeatherStatusArchiver("/home/abdelrahman/parquet-files");
                 consume();
             } catch (IOException e) {
                 System.err.println("Error initializing WeatherStatusArchiver: " + e.getMessage());

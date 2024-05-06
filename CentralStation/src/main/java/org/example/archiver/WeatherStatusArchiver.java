@@ -70,11 +70,13 @@ public class WeatherStatusArchiver {
     private int recordCount;
     private int batchIndex;
 
-    private final static int BATCH_SIZE=10000;
+    private final static int BATCH_SIZE=5;
+    private final String outputDirectory;
 
-    public WeatherStatusArchiver(String outputPath) throws IOException {
+    public WeatherStatusArchiver(String outputDirectory) throws IOException {
+        this.outputDirectory = outputDirectory;
         Configuration conf = new Configuration();
-        this.writer = AvroParquetWriter.<GenericRecord>builder(new org.apache.hadoop.fs.Path(outputPath))
+        this.writer = AvroParquetWriter.<GenericRecord>builder(new org.apache.hadoop.fs.Path(getNextFilePath()))
                 .withSchema(SCHEMA)
                 .withConf(conf)
                 .withCompressionCodec(CompressionCodecName.SNAPPY)
@@ -86,17 +88,13 @@ public class WeatherStatusArchiver {
 
     public void archiveWeatherStatus(WeatherStatus status) throws IOException {
         batch.add(status);
+        System.out.println( "records not written:" +recordCount);
         recordCount++;
         if (recordCount >= BATCH_SIZE) {
             writeBatch();
         }
     }
 
-    private GenericRecord convertToGenericRecord(WeatherStatus status) {
-        // Convert WeatherStatus object to GenericRecord
-        // This code snippet should be replaced with your actual conversion logic
-        return null;
-    }
     private void writeBatch() throws IOException {
         for (WeatherStatus status : batch) {
             GenericRecord record = new GenericData.Record(SCHEMA);
@@ -111,22 +109,29 @@ public class WeatherStatusArchiver {
             record.put("weather", weatherInfo);
             writer.write(record);
         }
-        batch.clear();
-        recordCount = 0;
+        resetWriterAndBatch();
     }
 
-    public void close() throws IOException {
-        if (!batch.isEmpty()) {
-            writeBatch();
-        }
+    private void resetWriterAndBatch() throws IOException {
+        recordCount = 0;
+        batch.clear();
         writer.close();
+        System.out.println("records written:" + recordCount);
+        // Open new Parquet writer for the next batch
+        this.writer = AvroParquetWriter.<GenericRecord>builder(new org.apache.hadoop.fs.Path(getNextFilePath()))
+                .withSchema(SCHEMA)
+                .withConf(new Configuration())
+                .withCompressionCodec(CompressionCodecName.SNAPPY)
+                .withWriteMode(Mode.OVERWRITE)
+                .build();
     }
+
 
     private String getNextFilePath() {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss");
         String timestamp = dateFormat.format(new Date());
-        String fileName = "weather_statuses_batch_" + batchIndex + "_" + timestamp + ".parquet";
+        String fileName = "/weather_statuses_batch_" + batchIndex + "_" + timestamp + ".parquet";
         batchIndex++;
-        return "~/parquet-files/" + fileName;
+        return outputDirectory + fileName;
     }
 }
