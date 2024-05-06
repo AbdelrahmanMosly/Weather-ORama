@@ -1,4 +1,4 @@
-package org.example.entity;
+package org.example.models;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -10,9 +10,9 @@ import lombok.ToString;
 @Builder
 @ToString
 public class WeatherStatus {
-    private long station_id;
-    private long s_no;
-    private String battery_status;
-    private long status_timestamp;
+    private long stationId;
+    private long sNo;
+    private String batteryStatus;
+    private long statusTimestamp;
     private Weather weather;
 }

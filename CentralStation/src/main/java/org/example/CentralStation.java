@@ -1,64 +1,56 @@
 package org.example;
 
-import java.io.IOException;
-import java.time.Duration;
-import java.util.Collections;
+import java.io.FileInputStream;
+import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-
-import org.apache.kafka.common.serialization.ByteArrayDeserializer;
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.example.DTO.WeatherStatusDTO;
-import org.example.entity.WeatherStatus;
+import org.example.models.WeatherStatus;
+import org.example.services.KafkaChannel;
 
 
 public class CentralStation {
-    //WeatherStatusDTO weatherStatusDTO = new WeatherStatusDTO("src/main/resources/weather-status.avsc");
-    WeatherStatusDTO weatherStatusDTO = new WeatherStatusDTO();
 
-    private void process(byte[] message){
-        System.out.println("Received message: " + new String(message));
-        try {
-            WeatherStatus weatherStatus = weatherStatusDTO.deserialize(message);
-            //bitcask
-            //elasticSearch
-            //parquet
-            System.out.println(weatherStatus.toString());
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
+    private static Properties loadProperties() {
+        String rootPath = Objects.requireNonNull(Thread.currentThread().getContextClassLoader().getResource("")).getPath();
+        String appConfigPath = rootPath + "app.properties";
+        Properties appProps = new Properties();
+        try (FileInputStream fp = new FileInputStream(appConfigPath)) {
+            appProps.load(fp);
+        } catch (Exception e) {
+            System.err.println("app.properties is not found. Will be using default values if applicable.");
         }
+        return appProps;
     }
 
-    private void consume(){
-        Properties props = new Properties();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092");
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, "my-consumer-group");
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getName());
+    private static void process(WeatherStatus weatherStatus) {
+        System.out.println(weatherStatus.getStatusTimestamp());
+        //bitcask
+        //elasticSearch
+        //parquet
 
-        // Additional properties (optional)
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest"); // Specify where to start consuming messages
-        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true"); // Enable auto-commit
-        props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "1000"); // Auto-commit interval in milliseconds
+    }
 
-        KafkaConsumer<String, byte[]> consumer = new KafkaConsumer<>(props);
-        consumer.subscribe(Collections.singletonList("my-topic"));
-        try{
+    private static void consume() {
+        Properties appProps = loadProperties();
+        String kafkaTopic = appProps.getProperty("kafkaTopic", "test");
+        String kafkaBroker = appProps.getProperty("kafkaBroker", "localhost:9094");
+        String groupId = appProps.getProperty("groupId", "test");
+        KafkaChannel channel = new KafkaChannel(kafkaBroker, kafkaTopic, groupId);
+
+        try {
             while (true) {
-                ConsumerRecords<String, byte[]> records = consumer.poll(Duration.ofMillis(500));
-                records.forEach(record -> process(record.value()));
+                List<WeatherStatus> records = channel.consume();
+                records.forEach(CentralStation::process);
             }
-        }finally {
-            consumer.close();
+        } catch (Exception e) {
+            System.err.println("Error consuming messages" + e.getMessage());
+        } finally {
+            channel.cleanUp();
         }
     }
 
 
     public static void main(String[] args) {
-        System.out.println("Hello world!");
-        CentralStation centralStation = new CentralStation();
-        centralStation.consume();
+        consume();
     }
 }

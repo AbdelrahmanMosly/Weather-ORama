@@ -1,4 +1,4 @@
-package org.example.entity;
+package org.example.models;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -12,5 +12,5 @@ import lombok.ToString;
 public class Weather {
     private int humidity;
     private int temperature;
-    private int wind_speed;
+    private int windSpeed;
 }
