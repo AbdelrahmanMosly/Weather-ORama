@@ -70,7 +70,7 @@ public class WeatherStatusArchiver {
     private int recordCount;
     private int batchIndex;
 
-    private final static int BATCH_SIZE=5;
+    private final static int BATCH_SIZE=10000;
     private final String outputDirectory;
 
     public WeatherStatusArchiver(String outputDirectory) throws IOException {
