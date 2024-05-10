@@ -24,7 +24,7 @@ public class CentralStation {
 
     private static void process(WeatherStatus weatherStatus) {
         System.out.println(weatherStatus.getStatusTimestamp());
-        //bitcask
+        //add to bitcask
         //elasticSearch
         //parquet
 
