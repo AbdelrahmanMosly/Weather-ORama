@@ -7,10 +7,10 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
+@Getter
 public class DataFileSegment {
     public static final int MAX_OBJECTS_PER_SEGMENT = 10;
 
-    @Getter
     private final String segmentFileName;
     private final Map<Long, Long> hashIndex; // StationId to offset mapping
     private int objectsWritten;
