@@ -40,8 +40,8 @@ public class ParquetToElasticSearchUploader {
                 new HttpHost("localhost", 9200, "http")).build();
 
         // Define Elasticsearch index and type
-        String index = "your_index_name";
-        String type = "your_type_name";
+        String index = "weather_data";
+        String type = "weather_entry";
 
         // Prepare Elasticsearch bulk API request
         StringBuilder bulkRequest = new StringBuilder();
