@@ -38,15 +38,13 @@ public class ParquetToElasticSearchUploader {
         // Elasticsearch REST client setup
         RestClient restClient = RestClient.builder(
                 new HttpHost("localhost", 9200, "http")).build();
-
         // Define Elasticsearch index and type
         String index = "weather_data";
-        String type = "weather_entry";
 
         // Prepare Elasticsearch bulk API request
         StringBuilder bulkRequest = new StringBuilder();
         for (String jsonRecord : jsonData.collectAsList()) {
-            bulkRequest.append("{ \"index\" : { \"_index\" : \"" + index + "\", \"_type\" : \"" + type + "\" } }\n");
+            bulkRequest.append("{ \"index\" : { \"_index\" : \"" + index + "\" } }\n");
             bulkRequest.append(jsonRecord + "\n");
         }
 
