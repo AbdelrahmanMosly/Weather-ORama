@@ -68,7 +68,7 @@ public class WeatherStatusArchiver {
     private final Map<Long, ParquetWriter<GenericRecord>> stationWriterMap;
 
 
-    private final static int BATCH_SIZE= 5;
+    private final static int BATCH_SIZE= 10000;
     private final String outputDirectory;
     private final ExecutorService executorService;
 
