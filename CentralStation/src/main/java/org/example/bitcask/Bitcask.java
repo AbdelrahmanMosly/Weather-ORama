@@ -8,6 +8,7 @@ import java.util.*;
 
 public class Bitcask {
     public static final String SEGMENT_PREFIX = "segment_";
+    public static final String SEGMENT_DIRECTORY = "segments";
 
     @Getter
     private final Map<Long, Map.Entry<String, Long>> hashIndex; // StationId to (SegmentFileName, Offset) mapping
@@ -16,8 +17,8 @@ public class Bitcask {
 
     private int objectsWrittenToCurrentSegment;
     private DataFileSegment currentSegment;
-    private CompactService compactService;
-    private SnapshotService snapshotService;
+    private final CompactService compactService;
+    private final SnapshotService snapshotService;
 
     public Bitcask() {
         hashIndex = new HashMap<>();
@@ -30,9 +31,9 @@ public class Bitcask {
 
     private void createNewSegment(String segmentFileName) {
         try {
-            currentSegment = new DataFileSegment(segmentFileName);
+            currentSegment = new DataFileSegment(SEGMENT_DIRECTORY + "/" + segmentFileName);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Error creating new segment: " + segmentFileName + " - " + e.getMessage());
         }
     }
 
@@ -43,7 +44,8 @@ public class Bitcask {
     }
 
     private int getLastSegmentNumber() {
-        File[] files = new File(".").listFiles();
+        File directory = new File(SEGMENT_DIRECTORY);
+        File[] files = directory.listFiles();
         if (files == null) {
             return 0;
         }
@@ -71,7 +73,7 @@ public class Bitcask {
                 createNewSegment(SEGMENT_PREFIX + currentSegmentNumber + ".dat");
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Error writing to segment: " + currentSegment.getSegmentFileName() + " - " + e.getMessage());
         }
     }
 
@@ -85,17 +87,9 @@ public class Bitcask {
                 ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(file.getFD()));
                 return (WeatherStatus) inputStream.readObject();
             } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
+                System.err.println("Error reading from segment: " + segmentFileName + " - " + e.getMessage());
             }
         }
         return null;
     }
-
-
-
-
-
-
-
-
 }

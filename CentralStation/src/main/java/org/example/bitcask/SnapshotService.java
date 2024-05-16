@@ -9,8 +9,11 @@ import java.util.TimerTask;
 public class SnapshotService {
     public static final long SNAPSHOT_INTERVAL = 10 * 60 * 1000; // 10 minutes
     private final Bitcask bitcask;
+    public static final String SNAPSHOT_DIRECTORY = "snapshot";
+    public static final String SNAPSHOT_PREFIX = "snapshot_";
 
-    public SnapshotService(Bitcask bitcask){
+
+    public SnapshotService(Bitcask bitcask) {
         this.bitcask = bitcask;
         scheduleSnapshot();
     }
@@ -26,13 +29,13 @@ public class SnapshotService {
     }
 
     private void takeSnapshot() {
-        String snapshotFileName = String.format("snapshot_%d.txt", bitcask.getCurrentSegmentNumber());
+        String snapshotFileName = SNAPSHOT_DIRECTORY + "/" + SNAPSHOT_PREFIX + (bitcask.getCurrentSegmentNumber()-1) + ".txt";
         try (PrintWriter writer = new PrintWriter(snapshotFileName)) {
             for (Map.Entry<Long, Map.Entry<String, Long>> entry : bitcask.getHashIndex().entrySet()) {
                 writer.println(entry.getKey() + "," + entry.getValue().getKey() + "," + entry.getValue().getValue());
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Error writing snapshot file: " + snapshotFileName + " - " + e.getMessage());
         }
     }
 }
