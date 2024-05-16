@@ -3,17 +3,15 @@ package org.example.bitcask;
 import org.example.models.WeatherStatus;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 public class CompactService {
     private static final long COMPACT_INTERVAL = 60 * 1000; // 1 minute
     private int lastCompactedSegment;
     private static final String COMPACT_PREFIX = "compacted_";
-    public static final String COMPACTED_DIRECTORY = "compacted";
-
+    private static final String Hint_PREFIX = "hint_";
+    private static final String COMPACTED_DIRECTORY = "compacted";
+    private static final String HINT_DIRECTORY = "hints";
     private final Bitcask bitcask;
 
     public CompactService(Bitcask bitcask, int lastCompactedSegment) {
@@ -76,7 +74,7 @@ public class CompactService {
     }
 
     private void generateHintFile(int startSegment, int endSegment, Map<Long, Map.Entry<String, Long>> compactedHashIndex) {
-        String hintFileName = String.format("hint_%d_%d.txt", startSegment, endSegment);
+        String hintFileName = HINT_DIRECTORY + "/" + Hint_PREFIX + String.format("%d_%d.txt", startSegment, endSegment);
         try (PrintWriter writer = new PrintWriter(hintFileName)) {
             for (Map.Entry<Long, Map.Entry<String, Long>> entry : compactedHashIndex.entrySet()) {
                 writer.println(entry.getKey() + "," + entry.getValue().getKey() + "," + entry.getValue().getValue());
@@ -86,4 +84,55 @@ public class CompactService {
         }
     }
 
+    public static int updateWithHintFiles(Map<Long, Map.Entry<String, Long>> hashIndex, int lastSnapshotSegmentNum) {
+        int lastHintFileSegmentNum = 0;
+        File directory = new File(HINT_DIRECTORY);
+        if (!directory.exists()) {
+            return lastHintFileSegmentNum;
+        }
+        File[] hintFiles = directory.listFiles();
+        if (hintFiles != null) {
+            Arrays.sort(hintFiles, new HintFileComparator());
+
+            for (File file : hintFiles) {
+                int firstSegmentNum = extractFirstSegmentNumber(file.getName());
+                int lastSegmentNum = extractLastSegmentNumber(file.getName());
+                if (lastSnapshotSegmentNum < firstSegmentNum || lastSnapshotSegmentNum <= lastSegmentNum) {
+                    try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            String[] parts = line.split(",");
+                            if (parts.length == 3) {
+                                long stationId = Long.parseLong(parts[0]);
+                                String segmentFileName = parts[1];
+                                long offset = Long.parseLong(parts[2]);
+                                hashIndex.put(stationId, Map.entry(segmentFileName, offset));
+                            }
+                        }
+                        lastHintFileSegmentNum = lastSegmentNum;
+                    } catch (IOException e) {
+                        System.err.println("Error reading hint file: " + file.getName() + " - " + e.getMessage());
+                    }
+                }
+            }
+        }
+        return lastHintFileSegmentNum;
+    }
+
+    private static int extractFirstSegmentNumber(String fileName) {
+        return Integer.parseInt(fileName.substring(fileName.indexOf('_') + 1, fileName.lastIndexOf('_')));
+    }
+
+    private static int extractLastSegmentNumber(String fileName) {
+        return Integer.parseInt(fileName.substring(fileName.lastIndexOf('_') + 1, fileName.indexOf('.')));
+    }
+
+    private static class HintFileComparator implements Comparator<File> {
+        @Override
+        public int compare(File file1, File file2) {
+            int firstSegmentNum1 = extractFirstSegmentNumber(file1.getName());
+            int firstSegmentNum2 = extractFirstSegmentNumber(file2.getName());
+            return Integer.compare(firstSegmentNum1, firstSegmentNum2);
+        }
+    }
 }

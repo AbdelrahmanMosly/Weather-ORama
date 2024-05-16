@@ -8,7 +8,6 @@ import java.util.*;
 
 public class Bitcask {
     public static final String SEGMENT_PREFIX = "segment_";
-    public static final String SEGMENT_DIRECTORY = "segments";
 
     @Getter
     private final Map<Long, Map.Entry<String, Long>> hashIndex; // StationId to (SegmentFileName, Offset) mapping
@@ -26,12 +25,19 @@ public class Bitcask {
         createNewSegment(getNextSegmentFileName());
         compactService = new CompactService(this, 0);
         snapshotService = new SnapshotService(this);
+    }
 
+    public Bitcask(Map<Long, Map.Entry<String, Long>> hashIndex, DataFileSegment currentSegment, int lastCompactedSegment) {
+        this.hashIndex = hashIndex;
+        this.currentSegment = currentSegment;
+        this.currentSegmentNumber = currentSegment.getSegmentNumber();
+        compactService = new CompactService(this, lastCompactedSegment);
+        snapshotService = new SnapshotService(this);
     }
 
     private void createNewSegment(String segmentFileName) {
         try {
-            currentSegment = new DataFileSegment(SEGMENT_DIRECTORY + "/" + segmentFileName);
+            currentSegment = new DataFileSegment(segmentFileName);
         } catch (IOException e) {
             System.err.println("Error creating new segment: " + segmentFileName + " - " + e.getMessage());
         }
@@ -44,7 +50,7 @@ public class Bitcask {
     }
 
     private int getLastSegmentNumber() {
-        File directory = new File(SEGMENT_DIRECTORY);
+        File directory = new File(DataFileSegment.SEGMENT_DIRECTORY);
         File[] files = directory.listFiles();
         if (files == null) {
             return 0;
@@ -82,7 +88,7 @@ public class Bitcask {
         if (entry != null) {
             String segmentFileName = entry.getKey();
             long offset = entry.getValue();
-            try (RandomAccessFile file = new RandomAccessFile(segmentFileName, "r")) {
+            try (RandomAccessFile file = new RandomAccessFile(DataFileSegment.SEGMENT_DIRECTORY + "/" + segmentFileName, "r")) {
                 file.seek(offset);
                 ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(file.getFD()));
                 return (WeatherStatus) inputStream.readObject();

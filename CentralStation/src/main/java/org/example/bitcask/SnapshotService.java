@@ -1,7 +1,7 @@
 package org.example.bitcask;
 
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -29,7 +29,7 @@ public class SnapshotService {
     }
 
     private void takeSnapshot() {
-        String snapshotFileName = SNAPSHOT_DIRECTORY + "/" + SNAPSHOT_PREFIX + (bitcask.getCurrentSegmentNumber()-1) + ".txt";
+        String snapshotFileName = SNAPSHOT_DIRECTORY + "/" + SNAPSHOT_PREFIX + bitcask.getCurrentSegmentNumber() + ".txt";
         try (PrintWriter writer = new PrintWriter(snapshotFileName)) {
             for (Map.Entry<Long, Map.Entry<String, Long>> entry : bitcask.getHashIndex().entrySet()) {
                 writer.println(entry.getKey() + "," + entry.getValue().getKey() + "," + entry.getValue().getValue());
@@ -37,5 +37,46 @@ public class SnapshotService {
         } catch (IOException e) {
             System.err.println("Error writing snapshot file: " + snapshotFileName + " - " + e.getMessage());
         }
+    }
+
+    public static int loadLatestSnapshot(Map<Long, Map.Entry<String, Long>> hashIndex) throws IOException {
+        int lastSnapshotSegmentNum = 0;
+        File directory = new File(SNAPSHOT_DIRECTORY);
+        // check if the directory exists
+        if (!directory.exists()) {
+            return lastSnapshotSegmentNum;
+        }
+        File[] snapshotFiles = directory.listFiles();
+        if (snapshotFiles != null) {
+            for (File file : snapshotFiles) {
+                int segmentNum = extractSegmentNumber(file.getName());
+                if (segmentNum > lastSnapshotSegmentNum) {
+                    lastSnapshotSegmentNum = segmentNum;
+                }
+            }
+            if (lastSnapshotSegmentNum > 0) {
+                hashIndex.putAll(getSnapshot(lastSnapshotSegmentNum));
+            }
+        }
+        return lastSnapshotSegmentNum;
+    }
+
+    private static int extractSegmentNumber(String fileName) {
+        return Integer.parseInt(fileName.substring(fileName.indexOf('_') + 1, fileName.indexOf('.')));
+    }
+
+    private static Map<Long, Map.Entry<String, Long>> getSnapshot(int snapshotSegmentNum) throws IOException {
+        String snapshotFileName = SNAPSHOT_PREFIX + snapshotSegmentNum + ".txt";
+        BufferedReader reader = new BufferedReader(new FileReader(new File(SNAPSHOT_DIRECTORY, snapshotFileName)));
+        Map<Long, Map.Entry<String, Long>> hashIndex = new HashMap<>();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            String[] parts = line.split(",");
+            long stationId = Long.parseLong(parts[0]);
+            String segmentFileName = parts[1];
+            long offset = Long.parseLong(parts[2]);
+            hashIndex.put(stationId, Map.entry(segmentFileName, offset));
+        }
+        return hashIndex;
     }
 }
