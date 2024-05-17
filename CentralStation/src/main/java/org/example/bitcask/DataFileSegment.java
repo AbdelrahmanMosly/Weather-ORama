@@ -10,24 +10,44 @@ import java.util.Map;
 @Getter
 public class DataFileSegment {
     public static final int MAX_OBJECTS_PER_SEGMENT = 10;
+    public static final String SEGMENT_DIRECTORY = "segments";
+    public static final String SEGMENT_PREFIX = "segment_";
+    private static final String SEGMENT_NUMBER_FILE = "last_segment_number.txt";
 
     private final String segmentFileName;
-    public static final String SEGMENT_DIRECTORY = "segments";
-
+    private final int segmentNumber;
     private final Map<Long, Long> hashIndex; // StationId to offset mapping
     private int objectsWritten;
-    private RandomAccessFile file;
+    private final RandomAccessFile file;
 
 
-    public DataFileSegment(String segmentFileName) throws IOException {
-        this.segmentFileName = segmentFileName;
+    public DataFileSegment(int segmentNumber) throws IOException {
+        this.segmentNumber = segmentNumber;
+        this.segmentFileName = SEGMENT_PREFIX + segmentNumber + ".dat";
         this.hashIndex = new HashMap<>();
         this.objectsWritten = 0;
-        createFile();
+        file = new RandomAccessFile(new File(SEGMENT_DIRECTORY, segmentFileName), "rw");
+        if (readLastSegmentNumber() > segmentNumber)
+            writeLastSegmentNumber(segmentNumber);
     }
 
-    private void createFile() throws IOException {
-        file = new RandomAccessFile(SEGMENT_DIRECTORY + "/" + segmentFileName, "rw");
+    public static void writeLastSegmentNumber(int segmentNumber) throws IOException {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(SEGMENT_NUMBER_FILE))) {
+            writer.println(segmentNumber);
+        }
+    }
+
+    public static int readLastSegmentNumber() throws IOException {
+        File file = new File(SEGMENT_NUMBER_FILE);
+        if (!file.exists()) {
+            return 0; // Default value if the file does not exist
+        }
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line = reader.readLine();
+            return Integer.parseInt(line);
+        } catch (NumberFormatException e) {
+            throw new IOException("Invalid segment number in file: " + SEGMENT_NUMBER_FILE, e);
+        }
     }
 
     public long addObject(WeatherStatus weatherStatus) throws IOException {
@@ -49,13 +69,10 @@ public class DataFileSegment {
         file.close();
     }
 
-    public int getSegmentNumber(){
-        return extractSegmentNumber(segmentFileName);
-    }
-
-    private static DataFileSegment open(String segmentFileName) throws IOException, ClassNotFoundException {
+    private static DataFileSegment open(int segmentNumber) throws IOException, ClassNotFoundException {
         Map<Long, Long> hashIndex = new HashMap<>();
-        try (RandomAccessFile file = new RandomAccessFile(SEGMENT_DIRECTORY + "/" + segmentFileName, "r")) {
+        String segmentFileName = SEGMENT_PREFIX + segmentNumber + ".dat";
+        try (RandomAccessFile file = new RandomAccessFile(new File(SEGMENT_DIRECTORY, segmentFileName), "r")) {
             while (file.getFilePointer() < file.length()) {
                 long currentPosition = file.getFilePointer();
                 WeatherStatus weatherStatus = (WeatherStatus) new ObjectInputStream(new FileInputStream(file.getFD())).readObject();
@@ -63,20 +80,44 @@ public class DataFileSegment {
             }
         }
 
-        DataFileSegment segment = new DataFileSegment(segmentFileName);
+        DataFileSegment segment = new DataFileSegment(segmentNumber);
         segment.hashIndex.putAll(hashIndex);
         segment.objectsWritten = hashIndex.size();
         return segment;
     }
 
-    public static DataFileSegment recoverFromSegment(Map<Long, Map.Entry<String, Long>> hashIndex, int startSegmentNum) {
+    public static void compactSegment(int segmentNumber, Map<Long, WeatherStatus> stationIdToLatestWeatherStatus,
+                                      Map<Long, Map.Entry<String, Long>> compactedHashIndex) throws IOException, ClassNotFoundException{
+
+        String segmentFileName = SEGMENT_PREFIX + segmentNumber + ".dat";
+        try (RandomAccessFile file = new RandomAccessFile(new File(SEGMENT_DIRECTORY, segmentFileName), "r")) {
+            while (file.getFilePointer() < file.length()) {
+                long currentPosition = file.getFilePointer();
+                WeatherStatus weatherStatus = (WeatherStatus) new ObjectInputStream(new FileInputStream(file.getFD())).readObject();
+                long stationId = weatherStatus.getStationId();
+                stationIdToLatestWeatherStatus.put(stationId, weatherStatus);
+                compactedHashIndex.put(stationId, Map.entry(segmentFileName, currentPosition));
+            }
+        }
+
+    }
+
+    public static DataFileSegment recoverStartingFromSegment(Map<Long, Map.Entry<String, Long>> hashIndex, int startSegmentNum) {
         DataFileSegment currentSegment = null;
         int lastSegmentNum = startSegmentNum - 1;
 
-        for (int i = startSegmentNum; ; i++) {
-            String segmentFileName = Bitcask.SEGMENT_PREFIX + i + ".dat";
+        int lastSegmentNumber;
+        try {
+            lastSegmentNumber = readLastSegmentNumber();
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+            lastSegmentNumber = -1;
+        }
+
+        for (int i = startSegmentNum; i <= lastSegmentNumber || lastSegmentNumber == -1; i++) {
+            String segmentFileName = SEGMENT_PREFIX + i + ".dat";
             try {
-                currentSegment = open(segmentFileName);
+                currentSegment = open(i);
                 lastSegmentNum = i;
                 for (Map.Entry<Long, Long> entry : currentSegment.getHashIndex().entrySet()) {
                     long stationId = entry.getKey();
@@ -91,18 +132,13 @@ public class DataFileSegment {
         }
         if (currentSegment != null && currentSegment.getObjectsWritten() >= MAX_OBJECTS_PER_SEGMENT) {
             lastSegmentNum++;
-            String newSegmentFileName = Bitcask.SEGMENT_PREFIX + lastSegmentNum + ".dat";
             try {
-                currentSegment = new DataFileSegment(newSegmentFileName);
+                currentSegment = new DataFileSegment(lastSegmentNum);
             } catch (IOException e) {
-                System.err.println("Error creating new segment: " + newSegmentFileName + " - " + e.getMessage());
+                System.err.println("Error creating new segment: " + SEGMENT_PREFIX + lastSegmentNum + ".dat - " + e.getMessage());
             }
         }
 
         return currentSegment;
-    }
-
-    private int extractSegmentNumber(String fileName) {
-        return Integer.parseInt(fileName.substring(fileName.indexOf('_') + 1, fileName.indexOf('.')));
     }
 }

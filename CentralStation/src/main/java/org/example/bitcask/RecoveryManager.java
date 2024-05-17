@@ -1,6 +1,5 @@
 package org.example.bitcask;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,7 +26,7 @@ public class RecoveryManager {
                 startSegmentNum = lastHintFileSegmentNum + 1;
             }
             // Step 3: Update with segment files
-            DataFileSegment currentDataFileSegment = DataFileSegment.recoverFromSegment(hashIndex, startSegmentNum);
+            DataFileSegment currentDataFileSegment = DataFileSegment.recoverStartingFromSegment(hashIndex, startSegmentNum);
 
         return new Bitcask(hashIndex, currentDataFileSegment, lastSnapshotSegmentNum);
     }

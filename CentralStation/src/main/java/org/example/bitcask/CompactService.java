@@ -32,7 +32,7 @@ public class CompactService {
 
     private void compactSegments() {
         int startSegment = lastCompactedSegment + 1;
-        int endSegment = bitcask.getCurrentSegmentNumber() - 1;
+        int endSegment = bitcask.getCurrentSegment().getSegmentNumber() - 1;
         if (startSegment >= endSegment) {
             return;
         }
@@ -42,26 +42,23 @@ public class CompactService {
     }
 
     private void compactSegments(int startSegment, int endSegment) {
-        String compactedFileName = COMPACTED_DIRECTORY + "/" + COMPACT_PREFIX + String.format("%d_%d.dat", startSegment, endSegment);
-        // read all segments and create map of stationId to latest weather status and create the hashIndex for the compacted file
         Map<Long, WeatherStatus> stationIdToLatestWeatherStatus = new HashMap<>();
         Map<Long, Map.Entry<String, Long>> compactedHashIndex = new HashMap<>();
+
         for (int i = startSegment; i <= endSegment; i++) {
-            String segmentFileName = Bitcask.SEGMENT_PREFIX + i + ".dat";
-            try (RandomAccessFile file = new RandomAccessFile(Bitcask.SEGMENT_DIRECTORY + "/" + segmentFileName, "r")) {
-                while (file.getFilePointer() < file.length()) {
-                    long currentPosition = file.getFilePointer();
-                    WeatherStatus weatherStatus = (WeatherStatus) new ObjectInputStream(new FileInputStream(file.getFD())).readObject();
-                    long stationId = weatherStatus.getStationId();
-                    stationIdToLatestWeatherStatus.put(stationId, weatherStatus);
-                    compactedHashIndex.put(stationId, Map.entry(segmentFileName, currentPosition));
-                }
+            try {
+                DataFileSegment.compactSegment(i, stationIdToLatestWeatherStatus, compactedHashIndex);
             } catch (IOException | ClassNotFoundException e) {
-                System.err.println("Error reading segment file: " + segmentFileName + " - " + e.getMessage());
+                throw new RuntimeException(e);
             }
         }
-        // write the latest weather status to the compacted file
-        try (FileOutputStream outputStream = new FileOutputStream(compactedFileName);
+        generateCompactedFile(startSegment,endSegment,stationIdToLatestWeatherStatus);
+        generateHintFile(startSegment, endSegment, compactedHashIndex);
+    }
+
+    private void generateCompactedFile(int startSegment,int endSegment,Map<Long, WeatherStatus> stationIdToLatestWeatherStatus){
+        String compactedFileName = COMPACT_PREFIX + String.format("%d_%d.dat", startSegment, endSegment);
+        try (FileOutputStream outputStream = new FileOutputStream(new File(COMPACTED_DIRECTORY, compactedFileName));
              BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
              ObjectOutputStream objectOutputStream = new ObjectOutputStream(bufferedOutputStream)) {
             for (WeatherStatus weatherStatus : stationIdToLatestWeatherStatus.values()) {
@@ -70,7 +67,6 @@ public class CompactService {
         } catch (IOException e) {
             System.err.println("Error writing to compacted file: " + compactedFileName + " - " + e.getMessage());
         }
-        generateHintFile(startSegment, endSegment, compactedHashIndex);
     }
 
     private void generateHintFile(int startSegment, int endSegment, Map<Long, Map.Entry<String, Long>> compactedHashIndex) {

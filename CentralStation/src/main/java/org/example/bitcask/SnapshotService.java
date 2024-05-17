@@ -29,8 +29,8 @@ public class SnapshotService {
     }
 
     private void takeSnapshot() {
-        String snapshotFileName = SNAPSHOT_DIRECTORY + "/" + SNAPSHOT_PREFIX + bitcask.getCurrentSegmentNumber() + ".txt";
-        try (PrintWriter writer = new PrintWriter(snapshotFileName)) {
+        String snapshotFileName = SNAPSHOT_PREFIX + bitcask.getCurrentSegment().getSegmentNumber() + ".txt";
+        try (PrintWriter writer = new PrintWriter(new File(SNAPSHOT_DIRECTORY, snapshotFileName))) {
             for (Map.Entry<Long, Map.Entry<String, Long>> entry : bitcask.getHashIndex().entrySet()) {
                 writer.println(entry.getKey() + "," + entry.getValue().getKey() + "," + entry.getValue().getValue());
             }

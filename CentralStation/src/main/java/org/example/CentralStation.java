@@ -1,14 +1,20 @@
 package org.example;
 
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
+
+import org.example.bitcask.Bitcask;
+import org.example.bitcask.DataFileSegment;
+import org.example.bitcask.RecoveryManager;
 import org.example.models.WeatherStatus;
 import org.example.services.KafkaChannel;
 
 
 public class CentralStation {
+    private static Bitcask bitcask;
 
     private static Properties loadProperties() {
         String rootPath = Objects.requireNonNull(Thread.currentThread().getContextClassLoader().getResource("")).getPath();
@@ -24,7 +30,7 @@ public class CentralStation {
 
     private static void process(WeatherStatus weatherStatus) {
         System.out.println(weatherStatus.getStatusTimestamp());
-        //add to bitcask
+        bitcask.put(weatherStatus);
         //elasticSearch
         //parquet
 
@@ -51,6 +57,17 @@ public class CentralStation {
 
 
     public static void main(String[] args) {
+        try {
+            if(DataFileSegment.readLastSegmentNumber() > 0){
+                bitcask = RecoveryManager.recover();
+            }else{
+                bitcask = new Bitcask();
+            }
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+            bitcask = new Bitcask();
+        }
+
         consume();
     }
 }
