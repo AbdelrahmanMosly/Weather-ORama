@@ -27,3 +27,6 @@ replay_pid*
 .idea
 /CentralStation/segments
 CentralStation/last_segment_number.txt
+/CentralStation/compacted
+/CentralStation/hints
+/CentralStation/snapshot

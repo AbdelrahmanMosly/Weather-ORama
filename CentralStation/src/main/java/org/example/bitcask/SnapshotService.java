@@ -65,6 +65,7 @@ public class SnapshotService {
                 hashIndex.putAll(getSnapshot(lastSnapshotSegmentNum));
             }
         }
+        System.err.println("Recovering: Loaded latest snapshot: " + lastSnapshotSegmentNum);
         return lastSnapshotSegmentNum;
     }
 

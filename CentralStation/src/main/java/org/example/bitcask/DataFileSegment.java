@@ -149,6 +149,7 @@ public class DataFileSegment {
                 System.err.println("Error creating new segment: " + SEGMENT_PREFIX + lastSegmentNum + ".dat - " + e.getMessage());
             }
         }
+        System.err.println("Recovering: Loaded from segment:" + startSegmentNum + " to segment: " + lastSegmentNum);
 
         return currentSegment;
     }

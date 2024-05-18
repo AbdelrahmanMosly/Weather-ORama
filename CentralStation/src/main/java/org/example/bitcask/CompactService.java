@@ -77,18 +77,20 @@ public class CompactService {
         } catch (IOException e) {
             System.err.println("Error writing to compacted file: " + compactedFileName + " - " + e.getMessage());
         }
+        System.err.println("Compacted file generated: " + compactedFileName);
     }
 
     private void generateHintFile(int startSegment, int endSegment, Map<Long, Map.Entry<String, Long>> compactedHashIndex) {
         createDirectoryIfNotExists(HINT_DIRECTORY);
-        String hintFileName = HINT_DIRECTORY + "/" + Hint_PREFIX + String.format("%d_%d.txt", startSegment, endSegment);
-        try (PrintWriter writer = new PrintWriter(hintFileName)) {
+        String hintFileName = Hint_PREFIX + String.format("%d_%d.txt", startSegment, endSegment);
+        try (PrintWriter writer = new PrintWriter(new File(HINT_DIRECTORY, hintFileName))) {
             for (Map.Entry<Long, Map.Entry<String, Long>> entry : compactedHashIndex.entrySet()) {
                 writer.println(entry.getKey() + "," + entry.getValue().getKey() + "," + entry.getValue().getValue());
             }
         } catch (IOException e) {
             System.err.println("Error writing hint file: " + hintFileName + " - " + e.getMessage());
         }
+        System.err.println("Hint file generated: " + hintFileName);
     }
 
     public static int updateWithHintFiles(Map<Long, Map.Entry<String, Long>> hashIndex, int lastSnapshotSegmentNum) {
@@ -120,6 +122,7 @@ public class CompactService {
                     } catch (IOException e) {
                         System.err.println("Error reading hint file: " + file.getName() + " - " + e.getMessage());
                     }
+                    System.err.println("Recovering: Loaded hint file: " + file.getName());
                 }
             }
         }
