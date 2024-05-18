@@ -55,6 +55,8 @@ public class ParquetToElasticSearchUploader {
         Response response = restClient.performRequest(request);
 
         // Print response status
+        System.out.println("Using index name: " + index);
+        System.out.println("Using parquet file: " + parquetFilePath);
         System.out.println("Response status: " + response.getStatusLine().getStatusCode());
 
         // Close SparkSession
