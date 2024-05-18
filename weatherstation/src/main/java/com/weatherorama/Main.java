@@ -58,8 +58,8 @@ public class Main {
 
 
     private static Properties loadProperties(Logger logger){
-        String rootPath = Thread.currentThread().getContextClassLoader().getResource("").getPath();
-        String appConfigPath = rootPath + "app.properties";
+        String appConfigPath = System.getenv("PROPS_PATH");
+        // String appConfigPath = rootPath + "app.properties";
         Properties appProps = new Properties();
         try (FileInputStream fp = new FileInputStream(appConfigPath)) {
             appProps.load(fp);
