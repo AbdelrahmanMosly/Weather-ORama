@@ -34,7 +34,7 @@ public class Main {
 
         long stationID = Long.parseLong(appProps.getProperty("stationID", "0"));
         double longitude = Double.parseDouble(appProps.getProperty("stationLongitude", "47.1915"));
-        double latitude = Double.parseDouble(appProps.getProperty("stationLatitude", "52.8371"));
+        double latitude = Double.parseDouble(appProps.getProperty("stationLatitude", "-52.8371"));
         String weatherAPI = appProps.getProperty("weatherAPI");
 
         if(weatherAPI == null){

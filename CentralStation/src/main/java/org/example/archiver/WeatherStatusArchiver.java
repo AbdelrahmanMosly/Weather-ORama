@@ -11,10 +11,10 @@ import org.apache.parquet.hadoop.ParquetFileWriter.Mode;
 import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class WeatherStatusArchiver {
 
@@ -64,74 +64,76 @@ public class WeatherStatusArchiver {
             "}");
 
 
-    private ParquetWriter<GenericRecord> writer;
-    private final List<WeatherStatus> batch;
+    private final Map<Long, List<WeatherStatus>> stationStatusMap;
+    private final Map<Long, ParquetWriter<GenericRecord>> stationWriterMap;
 
-    private int recordCount;
-    private int batchIndex;
 
     private final static int BATCH_SIZE= 10000;
     private final String outputDirectory;
+    private final ExecutorService executorService;
 
     public WeatherStatusArchiver(String outputDirectory) throws IOException {
         this.outputDirectory = outputDirectory;
-        Configuration conf = new Configuration();
-        this.writer = AvroParquetWriter.<GenericRecord>builder(new org.apache.hadoop.fs.Path(getNextFilePath()))
-                .withSchema(SCHEMA)
-                .withConf(conf)
-                .withCompressionCodec(CompressionCodecName.SNAPPY)
-                .withWriteMode(Mode.OVERWRITE)
-                .build();
-        this.batch = new ArrayList<>();
-        this.recordCount = 0;
+        this.stationStatusMap = new HashMap<>();
+        this.stationWriterMap = new HashMap<>();
+        this.executorService = Executors.newCachedThreadPool();
     }
 
     public void archiveWeatherStatus(WeatherStatus status) throws IOException {
-        batch.add(status);
-        System.out.println( "records not written:" +recordCount);
-        recordCount++;
-        if (recordCount >= BATCH_SIZE) {
-            writeBatch();
+        long stationId = status.getStationId();
+        if (!stationStatusMap.containsKey(stationId)) {
+            stationStatusMap.put(stationId, new ArrayList<>());
+        }
+        stationStatusMap.get(stationId).add(status);
+        if (stationStatusMap.get(stationId).size() >= BATCH_SIZE) {
+            writeBatch(stationId);
         }
     }
 
-    private void writeBatch() throws IOException {
-        for (WeatherStatus status : batch) {
-            GenericRecord record = new GenericData.Record(SCHEMA);
-            record.put("station_id", status.getStationId());
-            record.put("s_no", status.getSNo());
-            record.put("battery_status", status.getBatteryStatus());
-            record.put("status_timestamp", status.getStatusTimestamp());
-            GenericRecord weatherInfo = new GenericData.Record(SCHEMA.getField("weather").schema());
-            weatherInfo.put("humidity", status.getWeather().getHumidity());
-            weatherInfo.put("temperature", status.getWeather().getTemperature());
-            weatherInfo.put("wind_speed", status.getWeather().getWindSpeed());
-            record.put("weather", weatherInfo);
-            writer.write(record);
-        }
-        resetWriterAndBatch();
+    private void writeBatch(Long stationId) throws IOException {
+        List<WeatherStatus> batch = stationStatusMap.remove(stationId);
+        executorService.submit(() -> {
+            try {
+                ParquetWriter<GenericRecord> writer = getWriterForStation(stationId);
+                for (WeatherStatus status : batch) {
+                    GenericRecord record = new GenericData.Record(SCHEMA);
+                    record.put("station_id", status.getStationId());
+                    record.put("s_no", status.getSNo());
+                    record.put("battery_status", status.getBatteryStatus());
+                    record.put("status_timestamp", status.getStatusTimestamp());
+                    GenericRecord weatherInfo = new GenericData.Record(SCHEMA.getField("weather").schema());
+                    weatherInfo.put("humidity", status.getWeather().getHumidity());
+                    weatherInfo.put("temperature", status.getWeather().getTemperature());
+                    weatherInfo.put("wind_speed", status.getWeather().getWindSpeed());
+                    record.put("weather", weatherInfo);
+                    writer.write(record);
+                }
+                writer.close();
+            }catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
-    private void resetWriterAndBatch() throws IOException {
-        recordCount = 0;
-        batch.clear();
-        writer.close();
-        System.out.println("records written:" + recordCount);
-        // Open new Parquet writer for the next batch
-        this.writer = AvroParquetWriter.<GenericRecord>builder(new org.apache.hadoop.fs.Path(getNextFilePath()))
-                .withSchema(SCHEMA)
-                .withConf(new Configuration())
-                .withCompressionCodec(CompressionCodecName.SNAPPY)
-                .withWriteMode(Mode.OVERWRITE)
-                .build();
+    private ParquetWriter<GenericRecord> getWriterForStation(long stationId) throws IOException {
+        return stationWriterMap.computeIfAbsent(stationId, k -> {
+            try {
+                String stationDirectory = outputDirectory + "/station_" + stationId;
+                String fileName = stationDirectory + "/weather_statuses_for_" + stationId + "_" + getCurrentTimestamp() + ".parquet";
+                Configuration conf = new Configuration();
+                return AvroParquetWriter.<GenericRecord>builder(new org.apache.hadoop.fs.Path(fileName))
+                        .withSchema(SCHEMA)
+                        .withConf(conf)
+                        .withCompressionCodec(CompressionCodecName.SNAPPY)
+                        .withWriteMode(Mode.OVERWRITE)
+                        .build();
+            } catch (IOException e) {
+                throw new RuntimeException(e); // Rethrow as unchecked exception
+            }
+        });
     }
-
-
-    private String getNextFilePath() {
+    private String getCurrentTimestamp() {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss");
-        String timestamp = dateFormat.format(new Date());
-        String fileName = "/weather_statuses_batch_" + batchIndex + "_" + timestamp + ".parquet";
-        batchIndex++;
-        return outputDirectory + fileName;
+        return dateFormat.format(new Date());
     }
 }
