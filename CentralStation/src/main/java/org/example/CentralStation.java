@@ -1,14 +1,19 @@
 package org.example;
 
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
+
 import org.example.models.WeatherStatus;
 import org.example.services.KafkaChannel;
+import org.example.archiver.WeatherStatusArchiver;
+
 
 
 public class CentralStation {
+    private static WeatherStatusArchiver archiver;
 
     private static Properties loadProperties() {
         String rootPath = Objects.requireNonNull(Thread.currentThread().getContextClassLoader().getResource("")).getPath();
@@ -27,6 +32,11 @@ public class CentralStation {
         //bitcask
         //elasticSearch
         //parquet
+        try {
+            archiver.archiveWeatherStatus(weatherStatus);
+        } catch (IOException e) {
+            System.err.println("Error archiving weather status: " + e.getMessage());
+        }
 
     }
 
@@ -41,6 +51,7 @@ public class CentralStation {
             while (true) {
                 List<WeatherStatus> records = channel.consume();
                 records.forEach(CentralStation::process);
+
             }
         } catch (Exception e) {
             System.err.println("Error consuming messages" + e.getMessage());
@@ -51,6 +62,15 @@ public class CentralStation {
 
 
     public static void main(String[] args) {
-        consume();
+        {
+            try {
+                String homeDirectory = System.getProperty("user.home");
+                String parquetFilesDirectory = homeDirectory + "/parquet-files";
+                archiver = new WeatherStatusArchiver(parquetFilesDirectory);
+                consume();
+            } catch (IOException e) {
+                System.err.println("Error initializing WeatherStatusArchiver: " + e.getMessage());
+            }
+        }
     }
 }
