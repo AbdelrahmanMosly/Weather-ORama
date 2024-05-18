@@ -1,10 +1,8 @@
 #!/bin/bash
 
 # Directory to watch (set this to the directory you want to watch)
-WATCH_DIR="$HOME/parquet-files"
-
-# Path to your JAR file
-JAR_PATH="$HOME/parquet-files/ElasticSearchUploader.jar"
+WATCH_DIR="$PARQUET_FILES_DIR"  # Use environment variable for watch directory
+JAR_PATH="$ELASTICSEARCH_UPLOADER_JAR"  # Use environment variable for JAR path
 
 # Function to handle new files
 handle_new_file() {
