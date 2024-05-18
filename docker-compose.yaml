@@ -24,7 +24,7 @@ services:
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
     depends_on:
       - zookeeper
-
+    
   weather-station-0:
     image: weather-station
     container_name: weather-station-0
@@ -39,7 +39,6 @@ services:
       - WEATHER_API=https://api.open-meteo.com/v1/forecast
     depends_on:
       - kafka
-    command: echo "sleeping" && sleep 10000 && "woke up"
 
   weather-station-1:
       image: weather-station
@@ -55,7 +54,6 @@ services:
         - WEATHER_API=https://api.open-meteo.com/v1/forecast
       depends_on:
         - kafka
-      command: echo "sleeping" && sleep 10000 && "woke up"
 
 # volumes:
 #   zookeeper_data:
