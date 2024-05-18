@@ -25,12 +25,12 @@ services:
     depends_on:
       - zookeeper
 
-  weather-station:
+  weather-station-0:
     image: weather-station
-    container_name: weather-station
+    container_name: weather-station-0
     environment:
-      - POLL_EVERY=10000
-      - STATION_ID=6
+      - POLL_EVERY=1000
+      - STATION_ID=0
       - STATION_LONGITUDE=47.1915
       - STATION_LATITUDE=-52.8371
       - KAFKA_TOPIC=weather
@@ -40,6 +40,22 @@ services:
     depends_on:
       - kafka
     command: echo "sleeping" && sleep 10000 && "woke up"
+
+  weather-station-1:
+      image: weather-station
+      container_name: weather-station-1
+      environment:
+        - POLL_EVERY=1000
+        - STATION_ID=1
+        - STATION_LONGITUDE=28.1915
+        - STATION_LATITUDE=-19.8371
+        - KAFKA_TOPIC=weather
+        - KAFKA_BROKER=kafka:9092
+        - DROP_RATE=50
+        - WEATHER_API=https://api.open-meteo.com/v1/forecast
+      depends_on:
+        - kafka
+      command: echo "sleeping" && sleep 10000 && "woke up"
 
 # volumes:
 #   zookeeper_data:
