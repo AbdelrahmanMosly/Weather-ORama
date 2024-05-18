@@ -83,17 +83,19 @@ public class DataFileSegment {
     private static DataFileSegment open(int segmentNumber) throws IOException, ClassNotFoundException {
         Map<Long, Long> hashIndex = new HashMap<>();
         String segmentFileName = SEGMENT_PREFIX + segmentNumber + ".dat";
+        int counter = 0;
         try (RandomAccessFile file = new RandomAccessFile(new File(SEGMENT_DIRECTORY, segmentFileName), "r")) {
             while (file.getFilePointer() < file.length()) {
                 long currentPosition = file.getFilePointer();
                 WeatherStatus weatherStatus = (WeatherStatus) new ObjectInputStream(new FileInputStream(file.getFD())).readObject();
                 hashIndex.put(weatherStatus.getStationId(), currentPosition);
+                counter++;
             }
         }
 
         DataFileSegment segment = new DataFileSegment(segmentNumber);
         segment.hashIndex.putAll(hashIndex);
-        segment.objectsWritten = hashIndex.size();
+        segment.objectsWritten = counter;
         return segment;
     }
 
