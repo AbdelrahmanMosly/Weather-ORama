@@ -25,3 +25,5 @@ replay_pid*
 
 .vscode
 .idea
+/CentralStation/segments
+CentralStation/last_segment_number.txt

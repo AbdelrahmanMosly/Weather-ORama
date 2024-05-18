@@ -33,7 +33,7 @@ public class CompactService {
     private void compactSegments() {
         int startSegment = lastCompactedSegment + 1;
         int endSegment = bitcask.getCurrentSegment().getSegmentNumber() - 1;
-        if (startSegment >= endSegment) {
+        if (startSegment > endSegment) {
             return;
         }
 
@@ -56,7 +56,17 @@ public class CompactService {
         generateHintFile(startSegment, endSegment, compactedHashIndex);
     }
 
+    private void createDirectoryIfNotExists(String directoryName) {
+        File directory = new File(directoryName);
+        if (!directory.exists()) {
+            if (!directory.mkdirs()) {
+                throw new RuntimeException("Error creating directory: " + directoryName);
+            }
+        }
+    }
+
     private void generateCompactedFile(int startSegment,int endSegment,Map<Long, WeatherStatus> stationIdToLatestWeatherStatus){
+        createDirectoryIfNotExists(COMPACTED_DIRECTORY);
         String compactedFileName = COMPACT_PREFIX + String.format("%d_%d.dat", startSegment, endSegment);
         try (FileOutputStream outputStream = new FileOutputStream(new File(COMPACTED_DIRECTORY, compactedFileName));
              BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
@@ -70,6 +80,7 @@ public class CompactService {
     }
 
     private void generateHintFile(int startSegment, int endSegment, Map<Long, Map.Entry<String, Long>> compactedHashIndex) {
+        createDirectoryIfNotExists(HINT_DIRECTORY);
         String hintFileName = HINT_DIRECTORY + "/" + Hint_PREFIX + String.format("%d_%d.txt", startSegment, endSegment);
         try (PrintWriter writer = new PrintWriter(hintFileName)) {
             for (Map.Entry<Long, Map.Entry<String, Long>> entry : compactedHashIndex.entrySet()) {

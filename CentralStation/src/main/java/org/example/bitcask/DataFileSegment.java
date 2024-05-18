@@ -9,7 +9,7 @@ import java.util.Map;
 
 @Getter
 public class DataFileSegment {
-    public static final int MAX_OBJECTS_PER_SEGMENT = 10;
+    public static final int MAX_OBJECTS_PER_SEGMENT = 128;
     public static final String SEGMENT_DIRECTORY = "segments";
     public static final String SEGMENT_PREFIX = "segment_";
     private static final String SEGMENT_NUMBER_FILE = "last_segment_number.txt";
@@ -18,7 +18,7 @@ public class DataFileSegment {
     private final int segmentNumber;
     private final Map<Long, Long> hashIndex; // StationId to offset mapping
     private int objectsWritten;
-    private final RandomAccessFile file;
+    private RandomAccessFile file;
 
 
     public DataFileSegment(int segmentNumber) throws IOException {
@@ -26,8 +26,19 @@ public class DataFileSegment {
         this.segmentFileName = SEGMENT_PREFIX + segmentNumber + ".dat";
         this.hashIndex = new HashMap<>();
         this.objectsWritten = 0;
+        createFile();
+    }
+
+    private void createFile() throws IOException {
+        File directory = new File(SEGMENT_DIRECTORY);
+        if (!directory.exists()) {
+            if (!directory.mkdirs()) {
+                throw new RuntimeException("Error creating directory: " + SEGMENT_DIRECTORY);
+            }
+        }
+
         file = new RandomAccessFile(new File(SEGMENT_DIRECTORY, segmentFileName), "rw");
-        if (readLastSegmentNumber() > segmentNumber)
+        if (readLastSegmentNumber() < segmentNumber)
             writeLastSegmentNumber(segmentNumber);
     }
 
@@ -55,11 +66,11 @@ public class DataFileSegment {
         file.seek(currentPosition);
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(file.getFD()));
         objectOutputStream.writeObject(weatherStatus);
-        objectOutputStream.close();
         hashIndex.put(weatherStatus.getStationId(), currentPosition);
         objectsWritten++;
 
         if (objectsWritten >= MAX_OBJECTS_PER_SEGMENT) {
+            objectOutputStream.close();
             close();
         }
         return currentPosition;
@@ -87,7 +98,7 @@ public class DataFileSegment {
     }
 
     public static void compactSegment(int segmentNumber, Map<Long, WeatherStatus> stationIdToLatestWeatherStatus,
-                                      Map<Long, Map.Entry<String, Long>> compactedHashIndex) throws IOException, ClassNotFoundException{
+                                      Map<Long, Map.Entry<String, Long>> compactedHashIndex) throws IOException, ClassNotFoundException {
 
         String segmentFileName = SEGMENT_PREFIX + segmentNumber + ".dat";
         try (RandomAccessFile file = new RandomAccessFile(new File(SEGMENT_DIRECTORY, segmentFileName), "r")) {

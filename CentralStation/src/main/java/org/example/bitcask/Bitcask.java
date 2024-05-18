@@ -44,12 +44,15 @@ public class Bitcask {
         try {
             long offset = currentSegment.addObject(weatherStatus);
             hashIndex.put(stationId, Map.entry(currentSegment.getSegmentFileName(), offset));
+            System.err.println("Put in bitcask\tin segment: " + currentSegment.getSegmentNumber() + "\t, object#" + currentSegment.getObjectsWritten());
 
             if (currentSegment.getObjectsWritten() >= DataFileSegment.MAX_OBJECTS_PER_SEGMENT) {
-                createNewSegment(currentSegment.getSegmentNumber());
+                System.err.println("\tCreating new segment" + (currentSegment.getSegmentNumber() + 1));
+                createNewSegment(currentSegment.getSegmentNumber() + 1);
             }
         } catch (IOException e) {
-            System.err.println("Error writing to segment: " + currentSegment.getSegmentFileName() + " - " + e.getMessage());
+            System.err.println("Error writing to segment: " + currentSegment.getSegmentFileName() + " - ");
+            e.printStackTrace();
         }
     }
 
