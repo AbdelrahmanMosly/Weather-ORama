@@ -12,6 +12,8 @@ import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class ParquetToElasticSearchUploader {
 
@@ -22,6 +24,7 @@ public class ParquetToElasticSearchUploader {
         }
 
         String parquetFilePath = args[0];
+        String index = getIndexFromPath(parquetFilePath);
 
         // Initialize SparkSession
         SparkSession spark = SparkSession.builder()
@@ -38,8 +41,6 @@ public class ParquetToElasticSearchUploader {
         // Elasticsearch REST client setup
         RestClient restClient = RestClient.builder(
                 new HttpHost("localhost", 9200, "http")).build();
-        // Define Elasticsearch index and type
-        String index = "weather_data";
 
         // Prepare Elasticsearch bulk API request
         StringBuilder bulkRequest = new StringBuilder();
@@ -61,5 +62,9 @@ public class ParquetToElasticSearchUploader {
 
         // Close the Elasticsearch REST client
         restClient.close();
+    }
+    private static String getIndexFromPath(String parquetFilePath) {
+        Path path = Paths.get(parquetFilePath).getParent();
+        return path != null ? path.getFileName().toString() : "default_index";
     }
 }
