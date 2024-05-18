@@ -8,4 +8,4 @@ COPY ./src/main/resources/* /app/
 ENV PROPS_PATH=/app/app.properties
 
 
-ENTRYPOINT ["/bin/sh"]
+ENTRYPOINT ["java", "-cp", "WeatherStation.jar", "com.weatherorama.Main"]
