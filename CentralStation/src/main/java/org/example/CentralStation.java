@@ -78,7 +78,6 @@ public class CentralStation {
             bitcask = new Bitcask();
         }
 
-        
         try {
             String homeDirectory = System.getProperty("user.home");
             String parquetFilesDirectory = homeDirectory + "/parquet-files";
