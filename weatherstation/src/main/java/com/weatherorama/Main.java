@@ -24,18 +24,18 @@ public class Main {
 
         Properties appProps = loadProperties(logger);
 
-        String kafkaTopic = appProps.getProperty("kafkaTopic", "test");
-        String kafkaBroker = appProps.getProperty("kafkaBroker", "localhost:9094");
-        int dropRate = Integer.parseInt(appProps.getProperty("dropRate", "10"));
+        String kafkaTopic = appProps.getProperty("KAFKA_TOPIC", "test");
+        String kafkaBroker = appProps.getProperty("KAFKA_BROKER", "localhost:9094");
+        int dropRate = Integer.parseInt(appProps.getProperty("DROP_RATE", "10"));
 
         CentralStation<Long, StationStatus> channel = new KafkaChannel<>(kafkaBroker, kafkaTopic);
         channel = new MsgDropChannel<>(channel, dropRate);
 
 
-        long stationID = Long.parseLong(appProps.getProperty("stationID", "0"));
-        double longitude = Double.parseDouble(appProps.getProperty("stationLongitude", "47.1915"));
-        double latitude = Double.parseDouble(appProps.getProperty("stationLatitude", "-52.8371"));
-        String weatherAPI = appProps.getProperty("weatherAPI");
+        long stationID = Long.parseLong(appProps.getProperty("STATION_ID", "0"));
+        double longitude = Double.parseDouble(appProps.getProperty("STATION_LONGITUDE", "47.1915"));
+        double latitude = Double.parseDouble(appProps.getProperty("STATION_LATITUDE", "-52.8371"));
+        String weatherAPI = appProps.getProperty("WEATHER_API");
 
         if(weatherAPI == null){
             logger.error("No weather API was given. The station will shutdown");
@@ -48,7 +48,7 @@ public class Main {
                                                 .weatherSensor(new OpenMeteoService(weatherAPI, longitude, latitude))
                                                 .build();
         
-        long pollEvery = Long.parseLong(appProps.getProperty("pollEvery", "1000"));
+        long pollEvery = Long.parseLong(appProps.getProperty("POLL_EVERY", "1000"));
         
         while(true){
             weatherStation.invoke();
@@ -58,13 +58,15 @@ public class Main {
 
 
     private static Properties loadProperties(Logger logger){
-        String appConfigPath = System.getenv("PROPS_PATH");
-        // String appConfigPath = rootPath + "app.properties";
+        String rootPath = Thread.currentThread().getContextClassLoader().getResource("").getPath();
+        String appConfigPath = rootPath + "app.properties";
         Properties appProps = new Properties();
         try (FileInputStream fp = new FileInputStream(appConfigPath)) {
             appProps.load(fp);
         } catch (Exception e) {
-            logger.warn("app.properties is not found. Will be using default values if applicable.");
+            logger.warn("app.properties is not found. Will use Environmental Variables.");
+            appProps.putAll(System.getenv());
+            
         }
         return appProps;
     }
