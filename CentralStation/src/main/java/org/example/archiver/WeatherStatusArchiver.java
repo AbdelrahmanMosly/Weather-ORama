@@ -72,12 +72,12 @@ public class WeatherStatusArchiver {
     private final String outputDirectory;
     private final ExecutorService executorService;
 
-    public WeatherStatusArchiver(String outputDirectory, int batch_size) throws IOException {
+    public WeatherStatusArchiver(String outputDirectory, int batchSize) throws IOException {
         this.outputDirectory = outputDirectory;
         this.stationStatusMap = new HashMap<>();
         this.stationWriterMap = new HashMap<>();
         this.executorService = Executors.newCachedThreadPool();
-        this.batchSize = batch_size;
+        this.batchSize = batchSize;
     }
 
     public void archiveWeatherStatus(WeatherStatus status) throws IOException {

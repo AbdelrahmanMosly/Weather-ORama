@@ -76,16 +76,17 @@ public class CentralStation {
 
 
     public static void main(String[] args) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter("parquet/test.txt"))) {
-            writer.write("Hello World");
-        } catch (Exception e) {
-            // TODO: handle exception
-        }
+
         {
             try {
                 loadProperties();
                 String parquetFilesDirectory = appProps.getProperty("PARQUET_DIR");
-                int batchSize = Integer.parseInt(appProps.getProperty("BATCH_SIZE", "100"));
+                int batchSize = Integer.parseInt(appProps.getProperty("BATCH_SIZE", "10"));
+                try (BufferedWriter writer = new BufferedWriter(new FileWriter(parquetFilesDirectory + "/test.txt"))) {
+                    writer.write("Hello World " + batchSize);
+                } catch (Exception e) {
+                    // TODO: handle exception
+                }
                 archiver = new WeatherStatusArchiver(parquetFilesDirectory, batchSize);
                 consume();
             } catch (IOException e) {
