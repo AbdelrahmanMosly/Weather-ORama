@@ -68,15 +68,16 @@ public class WeatherStatusArchiver {
     private final Map<Long, ParquetWriter<GenericRecord>> stationWriterMap;
 
 
-    private final static int BATCH_SIZE= 10000;
+    private final int batchSize;
     private final String outputDirectory;
     private final ExecutorService executorService;
 
-    public WeatherStatusArchiver(String outputDirectory) throws IOException {
+    public WeatherStatusArchiver(String outputDirectory, int batch_size) throws IOException {
         this.outputDirectory = outputDirectory;
         this.stationStatusMap = new HashMap<>();
         this.stationWriterMap = new HashMap<>();
         this.executorService = Executors.newCachedThreadPool();
+        this.batchSize = batch_size;
     }
 
     public void archiveWeatherStatus(WeatherStatus status) throws IOException {
@@ -85,7 +86,7 @@ public class WeatherStatusArchiver {
             stationStatusMap.put(stationId, new ArrayList<>());
         }
         stationStatusMap.get(stationId).add(status);
-        if (stationStatusMap.get(stationId).size() >= BATCH_SIZE) {
+        if (stationStatusMap.get(stationId).size() >= batchSize) {
             writeBatch(stationId);
         }
     }

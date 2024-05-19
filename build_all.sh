@@ -8,4 +8,7 @@ cd ../weatherstation
 cd ../kafka
 ./build.sh
 
+cd ../ElasticSearchUploader
+./build.sh
+
 exit 0

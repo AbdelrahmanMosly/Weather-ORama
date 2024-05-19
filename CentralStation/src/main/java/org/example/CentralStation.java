@@ -1,6 +1,8 @@
 package org.example;
 
+import java.io.BufferedWriter;
 import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
@@ -14,9 +16,10 @@ import org.example.archiver.WeatherStatusArchiver;
 
 public class CentralStation {
     private static WeatherStatusArchiver archiver;
+    private static Properties appProps;
 
-    private static Properties loadProperties(){
-        Properties appProps = new Properties();
+    private static void loadProperties(){
+        appProps = new Properties();
         try{
             String rootPath = Thread.currentThread().getContextClassLoader().getResource("").getPath();
             String appConfigPath = rootPath + "app.properties";
@@ -28,7 +31,6 @@ public class CentralStation {
             appProps.putAll(System.getenv());
             
         }
-        return appProps;
     }
 
     private static void process(WeatherStatus weatherStatus) {
@@ -45,7 +47,6 @@ public class CentralStation {
     }
 
     private static void consume() {
-        Properties appProps = loadProperties();
         String weatherTopic = appProps.getProperty("WEATHER_TOPIC", "test");
         String rainTopic = appProps.getProperty("RAIN_TOPIC", "rain-test");
 
@@ -75,11 +76,17 @@ public class CentralStation {
 
 
     public static void main(String[] args) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("parquet/test.txt"))) {
+            writer.write("Hello World");
+        } catch (Exception e) {
+            // TODO: handle exception
+        }
         {
             try {
-                String homeDirectory = System.getProperty("user.home");
-                String parquetFilesDirectory = homeDirectory + "/parquet-files";
-                archiver = new WeatherStatusArchiver(parquetFilesDirectory);
+                loadProperties();
+                String parquetFilesDirectory = appProps.getProperty("PARQUET_DIR");
+                int batchSize = Integer.parseInt(appProps.getProperty("BATCH_SIZE", "100"));
+                archiver = new WeatherStatusArchiver(parquetFilesDirectory, batchSize);
                 consume();
             } catch (IOException e) {
                 System.err.println("Error initializing WeatherStatusArchiver: " + e.getMessage());
