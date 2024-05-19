@@ -1,0 +1,24 @@
+# Use a base image with Java and inotify-tools installed
+FROM openjdk:11-jre-slim
+
+# Install inotify-tools
+RUN apt-get update && apt-get install -y inotify-tools
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Set the environment variable for the Parquet files directory
+ENV PARQUET_FILES_DIR=/home/parquet-files
+
+# Create the directory for Parquet files
+RUN mkdir -p $PARQUET_FILES_DIR
+
+# Copy the JAR file and Bash script into the container
+COPY ElasticSearchUploader.jar watch_directory.sh ./
+
+# Make the Bash script executable
+RUN chmod +x watch_directory.sh
+
+# Command to run when the container starts
+CMD ["./watch_directory.sh"]
+
