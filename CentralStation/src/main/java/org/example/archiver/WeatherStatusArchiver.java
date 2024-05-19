@@ -95,7 +95,9 @@ public class WeatherStatusArchiver {
         log.debug("=====================================================");
 
         if (stationStatusMap.get(stationId).size() >= batchSize) {
+            int size = stationStatusMap.get(stationId).size();
             writeBatch(stationId);
+            log.warn("Wrote batch with size {} for station {}", size, stationId);
         }
     }
 

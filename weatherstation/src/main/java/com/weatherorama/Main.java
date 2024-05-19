@@ -12,7 +12,7 @@ import com.weatherorama.centralstation.interfaces.CentralStation;
 import com.weatherorama.centralstation.services.KafkaChannel;
 import com.weatherorama.centralstation.services.MsgDropChannel;
 import com.weatherorama.weatherstation.models.StationStatus;
-import com.weatherorama.weatherstation.services.OpenMeteoService;
+import com.weatherorama.weatherstation.services.WeatherSensorFactory;
 import com.weatherorama.weatherstation.services.WeatherStation;
 import com.weatherorama.weatherstation.services.WeatherStationBuilder;
 
@@ -45,7 +45,7 @@ public class Main {
         WeatherStation weatherStation = new WeatherStationBuilder()
                                                 .stationId(stationID)
                                                 .centralStation(channel)
-                                                .weatherSensor(new OpenMeteoService(weatherAPI, longitude, latitude))
+                                                .weatherSensor(WeatherSensorFactory.getWeatherSensor(weatherAPI, longitude, latitude))
                                                 .build();
         
         long pollEvery = Long.parseLong(appProps.getProperty("POLL_EVERY", "1000"));
