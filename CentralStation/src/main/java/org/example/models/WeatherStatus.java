@@ -1,15 +1,15 @@
 package org.example.models;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
+
+import java.io.Serializable;
 
 @Setter
 @Getter
 @Builder
 @ToString
-public class WeatherStatus {
+@Data
+public class WeatherStatus implements Serializable {
     private long stationId;
     private long sNo;
     private String batteryStatus;

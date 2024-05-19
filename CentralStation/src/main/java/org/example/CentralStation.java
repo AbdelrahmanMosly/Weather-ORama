@@ -4,8 +4,14 @@ import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Properties;
+
+import org.example.bitcask.Bitcask;
+import org.example.bitcask.DataFileSegment;
+import org.example.bitcask.RecoveryManager;
 
 import org.example.models.WeatherStatus;
 import org.example.services.KafkaChannel;
@@ -15,6 +21,7 @@ import org.example.archiver.WeatherStatusArchiver;
 
 
 public class CentralStation {
+    private static Bitcask bitcask;
     private static WeatherStatusArchiver archiver;
     private static Properties appProps;
 
@@ -34,8 +41,8 @@ public class CentralStation {
     }
 
     private static void process(WeatherStatus weatherStatus) {
-        // System.out.println(weatherStatus.getStatusTimestamp());
-        //bitcask
+        System.out.println(weatherStatus.getStatusTimestamp());
+        bitcask.put(weatherStatus);
         //elasticSearch
         //parquet
         try {
@@ -78,20 +85,34 @@ public class CentralStation {
     public static void main(String[] args) {
 
         {
+            loadProperties();
             try {
-                loadProperties();
-                String parquetFilesDirectory = appProps.getProperty("PARQUET_DIR");
-                int batchSize = Integer.parseInt(appProps.getProperty("BATCH_SIZE", "10"));
-                try (BufferedWriter writer = new BufferedWriter(new FileWriter(parquetFilesDirectory + "/test.txt"))) {
-                    writer.write("Hello World " + batchSize);
-                } catch (Exception e) {
-                    // TODO: handle exception
+                Files.createDirectories(Paths.get(appProps.getProperty("BITCASK_DIR", "bitcask")));
+                Files.createDirectories(Paths.get(appProps.getProperty("PARQUET_DIR", "parquet")));
+
+            } catch (IOException e) {
+                System.err.println("Error creating directories: " + e.getMessage());
+            }
+
+            try {
+                if(DataFileSegment.readLastSegmentNumber() > 0){
+                    bitcask = RecoveryManager.recover();
+                }else{
+                    bitcask = new Bitcask();
                 }
+            } catch (IOException e) {
+                System.err.println(e.getMessage());
+                bitcask = new Bitcask();
+            }
+            try {
+                String parquetFilesDirectory = appProps.getProperty("PARQUET_DIR");
+                int batchSize = Integer.parseInt(appProps.getProperty("BATCH_SIZE", "100"));
                 archiver = new WeatherStatusArchiver(parquetFilesDirectory, batchSize);
                 consume();
             } catch (IOException e) {
                 System.err.println("Error initializing WeatherStatusArchiver: " + e.getMessage());
             }
+        
         }
     }
 }

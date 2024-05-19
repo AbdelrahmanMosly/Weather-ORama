@@ -42,9 +42,14 @@ services:
       - KAFKA_BROKER=kafka:${KAFKA_PORT}
       - GROUP_ID=central-station
       - BATCH_SIZE=100
-      - PARQUET_DIR=${PARQUET_LOCATION}
+      - PARQUET_DIR=${SHARED_VOLUME}/${PARQUET_LOCATION}
+      - BITCASK_DIR=${SHARED_VOLUME}/${BITCASK_LOCATION}
+      - MAX_OBJECTS_PER_SEGMENT=128
+      - COMPACT_INTERVAL=60000
+      - SNAPSHOT_INTERVAL=300000
+
     volumes:
-      - parquet:${PARQUET_LOCATION}
+      - shared-volume:${SHARED_VOLUME}
 
     depends_on:
       - kafka-init
@@ -62,12 +67,12 @@ services:
     image: elastic-uploader
     container_name: elastic-uploader
     environment:
-      - PARQUET_FILES_DIR=${PARQUET_LOCATION}
+      - PARQUET_FILES_DIR=${SHARED_VOLUME}/${PARQUET_LOCATION}
       - ELASTICSEARCH_HOST=elastic-kibana
       - ELASTICSEARCH_PORT=9200
       - ELASTICSEARCH_UPLOADER_JAR=/app/ElasticSearchUploader.jar
     volumes:
-      - parquet:${PARQUET_LOCATION}
+      - shared-volume:${SHARED_VOLUME}
     depends_on: 
       - central-station
       - elastic-kibana
@@ -149,4 +154,4 @@ services:
         - kafka-init
 
 volumes:
-  parquet:
+  shared-volume:
