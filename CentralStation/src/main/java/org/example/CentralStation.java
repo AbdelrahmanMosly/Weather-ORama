@@ -7,11 +7,7 @@ import java.util.Properties;
 
 import org.example.models.WeatherStatus;
 import org.example.services.KafkaChannel;
-import org.example.services.KafkaStream;
-import org.example.services.RainProcessor;
-import org.apache.hadoop.thirdparty.org.checkerframework.checker.units.qual.s;
-import org.apache.kafka.streams.KafkaStreams;
-import org.apache.kafka.streams.Topology;
+import org.example.services.RainWatcher;
 import org.example.archiver.WeatherStatusArchiver;
 
 
@@ -58,7 +54,7 @@ public class CentralStation {
         String groupId = appProps.getProperty("GROUP_ID", "test");
         int humidityThreshold = Integer.parseInt(appProps.getProperty("HUMIDITY_THRESHOLD", "70"));
 
-        KafkaStream stream = new KafkaStream(kafkaBroker, groupId);
+        RainWatcher stream = new RainWatcher(kafkaBroker, groupId);
         stream.buildStream(weatherTopic, rainTopic, humidityThreshold);
 
 
