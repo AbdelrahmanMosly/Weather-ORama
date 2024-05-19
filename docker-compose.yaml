@@ -41,7 +41,7 @@ services:
       - HUMIDITY_THRESHOLD=70
       - KAFKA_BROKER=kafka:${KAFKA_PORT}
       - GROUP_ID=central-station
-      - BATCH_SIZE=100
+      - BATCH_SIZE=10
       - PARQUET_DIR=${PARQUET_LOCATION}
     volumes:
       - parquet:${PARQUET_LOCATION}
@@ -55,6 +55,7 @@ services:
     container_name: elastic-uploader
     environment:
       - PARQUET_FILES_DIR=${PARQUET_LOCATION}
+      - ELASTICSEARCH_UPLOADER_JAR=/app/ElasticSearchUploader.jar
     volumes:
       - parquet:${PARQUET_LOCATION}
     depends_on: 

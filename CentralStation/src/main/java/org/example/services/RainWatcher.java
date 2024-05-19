@@ -16,9 +16,7 @@ import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import lombok.extern.log4j.Log4j;
 
-@Log4j
 public class RainWatcher {
     
     private Properties properties;
@@ -52,7 +50,6 @@ public class RainWatcher {
         rainStream.to(rainTopic);
 
         Topology topology = builder.build();
-        log.info(topology.describe().toString());
 
         KafkaStreams streams = new KafkaStreams(topology, this.properties);
         streams.start();

@@ -1,14 +1,18 @@
 package org.example.archiver;
 
 import org.example.models.WeatherStatus;
+
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 import org.apache.parquet.avro.AvroParquetWriter;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.hadoop.ParquetFileWriter.Mode;
-import org.apache.parquet.hadoop.metadata.CompressionCodecName;
+import org.apache.parquet.hadoop.util.HadoopOutputFile;
 
 import java.io.IOException;
 import java.util.*;
@@ -16,6 +20,7 @@ import java.text.SimpleDateFormat;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+@Slf4j
 public class WeatherStatusArchiver {
 
     //Avro Schema
@@ -65,7 +70,6 @@ public class WeatherStatusArchiver {
 
 
     private final Map<Long, List<WeatherStatus>> stationStatusMap;
-    private final Map<Long, ParquetWriter<GenericRecord>> stationWriterMap;
 
 
     private final int batchSize;
@@ -75,17 +79,21 @@ public class WeatherStatusArchiver {
     public WeatherStatusArchiver(String outputDirectory, int batchSize) throws IOException {
         this.outputDirectory = outputDirectory;
         this.stationStatusMap = new HashMap<>();
-        this.stationWriterMap = new HashMap<>();
         this.executorService = Executors.newCachedThreadPool();
         this.batchSize = batchSize;
     }
 
     public void archiveWeatherStatus(WeatherStatus status) throws IOException {
+        log.debug("=====================================================");
+        // log.debug("Archiving weather status: {}", status);
         long stationId = status.getStationId();
         if (!stationStatusMap.containsKey(stationId)) {
             stationStatusMap.put(stationId, new ArrayList<>());
         }
         stationStatusMap.get(stationId).add(status);
+        log.debug("Station {} has {} statuses", stationId, stationStatusMap.get(stationId).size());
+        log.debug("=====================================================");
+
         if (stationStatusMap.get(stationId).size() >= batchSize) {
             writeBatch(stationId);
         }
@@ -94,8 +102,8 @@ public class WeatherStatusArchiver {
     private void writeBatch(Long stationId) throws IOException {
         List<WeatherStatus> batch = stationStatusMap.remove(stationId);
         executorService.submit(() -> {
-            try {
-                ParquetWriter<GenericRecord> writer = getWriterForStation(stationId);
+            try (ParquetWriter<GenericRecord> writer = getWriterForStation(stationId);){
+            
                 for (WeatherStatus status : batch) {
                     GenericRecord record = new GenericData.Record(SCHEMA);
                     record.put("station_id", status.getStationId());
@@ -107,31 +115,44 @@ public class WeatherStatusArchiver {
                     weatherInfo.put("temperature", status.getWeather().getTemperature());
                     weatherInfo.put("wind_speed", status.getWeather().getWindSpeed());
                     record.put("weather", weatherInfo);
-                    writer.write(record);
+                    try{
+                        log.debug("Writing record: {}", record);
+                        writer.write(record);
+                        log.debug("Wrote record: {}", record);   
+                    }catch (IOException e) {
+                        log.debug("Error writing record for station {}", stationId);
+                        e.printStackTrace();
+                    }
                 }
-                writer.close();
+
             }catch (IOException e) {
+                log.debug("Error creating writer for station {}", stationId);
                 e.printStackTrace();
             }
         });
     }
 
     private ParquetWriter<GenericRecord> getWriterForStation(long stationId) throws IOException {
-        return stationWriterMap.computeIfAbsent(stationId, k -> {
-            try {
-                String stationDirectory = outputDirectory + "/station_" + stationId;
-                String fileName = stationDirectory + "/weather_statuses_for_" + stationId + "_" + getCurrentTimestamp() + ".parquet";
-                Configuration conf = new Configuration();
-                return AvroParquetWriter.<GenericRecord>builder(new org.apache.hadoop.fs.Path(fileName))
-                        .withSchema(SCHEMA)
-                        .withConf(conf)
-                        .withCompressionCodec(CompressionCodecName.SNAPPY)
-                        .withWriteMode(Mode.OVERWRITE)
-                        .build();
-            } catch (IOException e) {
-                throw new RuntimeException(e); // Rethrow as unchecked exception
-            }
-        });
+        String stationDirectory = outputDirectory + "/station_" + stationId;
+        String fileName = stationDirectory + "/weather_statuses_for_" + stationId + "_" + getCurrentTimestamp() + ".parquet";
+        Configuration conf = new Configuration();
+        Path path = new Path(fileName);
+        return AvroParquetWriter.<GenericRecord>builder(HadoopOutputFile.fromPath(path, conf))
+                                .withSchema(SCHEMA)
+                                .withConf(conf)
+                                // .withCompressionCodec(CompressionCodecName.SNAPPY)
+                                .withWriteMode(Mode.OVERWRITE)
+                                .withValidation(false)
+                                .build();
+            // try {
+
+               
+            // } catch (IOException e) {
+            //     log.debug("Error creating writer for station {}", stationId);
+            //     log.debug(e.toString());
+            //     throw new RuntimeException(e); // Rethrow as unchecked exception
+            // }
+        // }
     }
     private String getCurrentTimestamp() {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss");
