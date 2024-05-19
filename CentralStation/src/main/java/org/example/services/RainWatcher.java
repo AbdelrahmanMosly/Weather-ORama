@@ -37,7 +37,7 @@ public class RainWatcher {
         .create();
     }
 
-    public void buildStream(String weatherTopic, String rainTopic, int humidityThreshold){
+    public void buildWatcher(String weatherTopic, String rainTopic, int humidityThreshold){
         System.out.println("Building rain Stream");
         StreamsBuilder builder = new StreamsBuilder();
         KStream<String, String> rainStream = builder.stream(weatherTopic)

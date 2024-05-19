@@ -54,8 +54,8 @@ public class CentralStation {
         String groupId = appProps.getProperty("GROUP_ID", "test");
         int humidityThreshold = Integer.parseInt(appProps.getProperty("HUMIDITY_THRESHOLD", "70"));
 
-        RainWatcher stream = new RainWatcher(kafkaBroker, groupId);
-        stream.buildStream(weatherTopic, rainTopic, humidityThreshold);
+        RainWatcher rainWatcher = new RainWatcher(kafkaBroker, groupId);
+        rainWatcher.buildWatcher(weatherTopic, rainTopic, humidityThreshold);
 
 
         KafkaChannel channel = new KafkaChannel(kafkaBroker, weatherTopic, groupId);
