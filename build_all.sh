@@ -5,4 +5,7 @@ cd CentralStation
 cd ../weatherstation
 ./build.sh
 
+cd ../kafka
+./build.sh
+
 exit 0

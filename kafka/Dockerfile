@@ -1,0 +1,13 @@
+FROM docker.io/bitnami/kafka:3.4
+
+COPY entrypoint.sh entrypoint.sh
+
+ENV KAFKA=kafka:9092
+ENV WEATHER_TOPIC=weather
+ENV RAINING_TOPIC=rain
+ENV WEATHER_REPLICATION_FACTOR=1
+ENV RAINING_REPLICATION_FACTOR=1
+ENV WEATHER_PARTITIONS=1
+ENV RAINING_PARTITIONS=1
+
+CMD ["/bin/sh", "-x", "./entrypoint.sh"]

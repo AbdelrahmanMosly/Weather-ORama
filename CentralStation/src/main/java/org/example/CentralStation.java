@@ -3,11 +3,15 @@ package org.example;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 import java.util.Properties;
 
 import org.example.models.WeatherStatus;
 import org.example.services.KafkaChannel;
+import org.example.services.KafkaStream;
+import org.example.services.RainProcessor;
+import org.apache.hadoop.thirdparty.org.checkerframework.checker.units.qual.s;
+import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.Topology;
 import org.example.archiver.WeatherStatusArchiver;
 
 
@@ -32,7 +36,7 @@ public class CentralStation {
     }
 
     private static void process(WeatherStatus weatherStatus) {
-        System.out.println(weatherStatus.getStatusTimestamp());
+        // System.out.println(weatherStatus.getStatusTimestamp());
         //bitcask
         //elasticSearch
         //parquet
@@ -46,10 +50,19 @@ public class CentralStation {
 
     private static void consume() {
         Properties appProps = loadProperties();
-        String kafkaTopic = appProps.getProperty("KAFKA_TOPIC", "test");
+        String weatherTopic = appProps.getProperty("WEATHER_TOPIC", "test");
+        String rainTopic = appProps.getProperty("RAIN_TOPIC", "rain-test");
+
+        
         String kafkaBroker = appProps.getProperty("KAFKA_BROKER", "localhost:9094");
         String groupId = appProps.getProperty("GROUP_ID", "test");
-        KafkaChannel channel = new KafkaChannel(kafkaBroker, kafkaTopic, groupId);
+        int humidityThreshold = Integer.parseInt(appProps.getProperty("HUMIDITY_THRESHOLD", "70"));
+
+        KafkaStream stream = new KafkaStream(kafkaBroker, groupId);
+        stream.buildStream(weatherTopic, rainTopic, humidityThreshold);
+
+
+        KafkaChannel channel = new KafkaChannel(kafkaBroker, weatherTopic, groupId);
 
         try {
             while (true) {

@@ -24,14 +24,30 @@ services:
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
     depends_on:
       - zookeeper
+
+  kafka-init:
+    image: kafka-init
+    container_name: kafka-init
+    environment:
+      - ZOOKEEPER=zookeeper:2181
+      - WEATHER_TOPIC=weather
+      - RAIN_TOPIC=rain
+    command: ["/bin/sh", "-x", "./entrypoint.sh"]
+    depends_on:
+      - kafka
     
   central-station:
     image: central-station
     container_name: central-station
     environment:
-    - KAFKA_TOPIC=weather
+    - WEATHER_TOPIC=weather
+    - RAIN_TOPIC=rain
+    - HUMIDITY_THRESHOLD=70
     - KAFKA_BROKER=kafka:9092
     - GROUP_ID=central-station
+
+    depends_on:
+      - kafka-init
 
   weather-station-0:
     image: weather-station
@@ -46,7 +62,7 @@ services:
       - DROP_RATE=50
       - WEATHER_API=https://api.open-meteo.com/v1/forecast
     depends_on:
-      - kafka
+      - kafka-init
 
   weather-station-1:
       image: weather-station
@@ -61,7 +77,7 @@ services:
         - DROP_RATE=50
         - WEATHER_API=https://api.open-meteo.com/v1/forecast
       depends_on:
-        - kafka
+        - kafka-init
 
 # volumes:
 #   zookeeper_data:
