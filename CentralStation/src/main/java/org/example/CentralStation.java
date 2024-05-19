@@ -15,14 +15,18 @@ import org.example.archiver.WeatherStatusArchiver;
 public class CentralStation {
     private static WeatherStatusArchiver archiver;
 
-    private static Properties loadProperties() {
-        String rootPath = Objects.requireNonNull(Thread.currentThread().getContextClassLoader().getResource("")).getPath();
-        String appConfigPath = rootPath + "app.properties";
+    private static Properties loadProperties(){
         Properties appProps = new Properties();
-        try (FileInputStream fp = new FileInputStream(appConfigPath)) {
-            appProps.load(fp);
+        try{
+            String rootPath = Thread.currentThread().getContextClassLoader().getResource("").getPath();
+            String appConfigPath = rootPath + "app.properties";
+            try (FileInputStream fp = new FileInputStream(appConfigPath)) {
+                appProps.load(fp);
+            }
         } catch (Exception e) {
-            System.err.println("app.properties is not found. Will be using default values if applicable.");
+            System.err.println("app.properties is not found. Will use Environmental Variables.");
+            appProps.putAll(System.getenv());
+            
         }
         return appProps;
     }
@@ -42,9 +46,9 @@ public class CentralStation {
 
     private static void consume() {
         Properties appProps = loadProperties();
-        String kafkaTopic = appProps.getProperty("kafkaTopic", "test");
-        String kafkaBroker = appProps.getProperty("kafkaBroker", "localhost:9094");
-        String groupId = appProps.getProperty("groupId", "test");
+        String kafkaTopic = appProps.getProperty("KAFKA_TOPIC", "test");
+        String kafkaBroker = appProps.getProperty("KAFKA_BROKER", "localhost:9094");
+        String groupId = appProps.getProperty("GROUP_ID", "test");
         KafkaChannel channel = new KafkaChannel(kafkaBroker, kafkaTopic, groupId);
 
         try {

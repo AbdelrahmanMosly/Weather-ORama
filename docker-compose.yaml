@@ -25,6 +25,14 @@ services:
     depends_on:
       - zookeeper
     
+  central-station:
+    image: central-station
+    container_name: central-station
+    environment:
+    - KAFKA_TOPIC=weather
+    - KAFKA_BROKER=kafka:9092
+    - GROUP_ID=central-station
+
   weather-station-0:
     image: weather-station
     container_name: weather-station-0

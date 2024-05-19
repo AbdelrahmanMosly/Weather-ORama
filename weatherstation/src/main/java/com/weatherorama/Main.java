@@ -58,11 +58,13 @@ public class Main {
 
 
     private static Properties loadProperties(Logger logger){
-        String rootPath = Thread.currentThread().getContextClassLoader().getResource("").getPath();
-        String appConfigPath = rootPath + "app.properties";
         Properties appProps = new Properties();
-        try (FileInputStream fp = new FileInputStream(appConfigPath)) {
-            appProps.load(fp);
+        try{
+            String rootPath = Thread.currentThread().getContextClassLoader().getResource("").getPath();
+            String appConfigPath = rootPath + "app.properties";
+            try (FileInputStream fp = new FileInputStream(appConfigPath)) {
+                appProps.load(fp);
+            }
         } catch (Exception e) {
             logger.warn("app.properties is not found. Will use Environmental Variables.");
             appProps.putAll(System.getenv());
