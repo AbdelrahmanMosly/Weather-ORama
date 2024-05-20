@@ -1,13 +1,20 @@
 #!/bin/bash
 
-kubectl apply -f weather-station-0-deployment.yaml
-kubectl apply -f weather-station-1-deployment.yaml
-kubectl apply -f weather-station-2-deployment.yaml
-kubectl apply -f weather-station-3-deployment.yaml
-kubectl apply -f weather-station-4-deployment.yaml
-kubectl apply -f weather-station-5-deployment.yaml
-kubectl apply -f weather-station-6-deployment.yaml
-kubectl apply -f weather-station-7-deployment.yaml
-kubectl apply -f weather-station-8-deployment.yaml
-kubectl apply -f weather-station-9-deployment.yaml
+cd "$(dirname "$0")"
+
+rm -r weather_stations
+mkdir weather_stations
+
+python3 weather_station_generator.py $1
+
+
+cd weather_stations
+
+for ((i=0; i<$1;i++))
+do  
+    # echo $i
+    kubectl apply -f weather-station-"$i"-deployment.yaml
+done
                 
+
+exit 0

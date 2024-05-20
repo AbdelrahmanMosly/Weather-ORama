@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: weather-station-7
+  name: weather-station-5
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: weather-station-7
+      app: weather-station-5
   template:
     metadata:
       labels:
-        app: weather-station-7
+        app: weather-station-5
     spec:
       containers:
         - env:
             - name: DROP_RATE
-              value: "25"
+              value: "10"
             - name: KAFKA_BROKER
               value: kafka-service:9092
             - name: KAFKA_TOPIC
@@ -23,15 +23,15 @@ spec:
             - name: POLL_EVERY
               value: "1000"
             - name: STATION_ID
-              value: "7"
+              value: "5"
             - name: STATION_LATITUDE
-              value: "-52.8371"
+              value: "5"
             - name: STATION_LONGITUDE
-              value: "47.1915"
+              value: "5"
             - name: WEATHER_API
               value: " "
               
-          name: weather-station-7
+          name: weather-station-5
           image: weather-station
           imagePullPolicy: Never
           resources: {}

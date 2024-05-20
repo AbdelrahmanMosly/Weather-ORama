@@ -1,0 +1,39 @@
+apiVersion: ${API_VERSION}
+kind: Deployment
+metadata:
+  name: weather-station-${ID}
+spec:
+  replicas: ${REPLICAS}
+  selector:
+    matchLabels:
+      app: weather-station-${ID}
+  template:
+    metadata:
+      labels:
+        app: weather-station-${ID}
+    spec:
+      containers:
+        - env:
+            - name: DROP_RATE
+              value: "${DROP_RATE}"
+            - name: KAFKA_BROKER
+              value: ${KAFKA_BROKER}
+            - name: KAFKA_TOPIC
+              value: ${KAFKA_TOPIC}
+            - name: POLL_EVERY
+              value: "${POLL_EVERY}"
+            - name: STATION_ID
+              value: "${ID}"
+            - name: STATION_LATITUDE
+              value: "${STATION_LATITUDE}"
+            - name: STATION_LONGITUDE
+              value: "${STATION_LONGITUDE}"
+            - name: WEATHER_API
+              value: ${WEATHER_API}
+              
+          name: weather-station-${ID}
+          image: weather-station
+          imagePullPolicy: Never
+          resources: {}
+      
+      restartPolicy: ${RESTART_POLICY}
