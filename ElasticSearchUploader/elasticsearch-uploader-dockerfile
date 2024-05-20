@@ -14,6 +14,7 @@ ENV PARQUET_FILES_DIR=/home/parquet-files
 RUN mkdir -p $PARQUET_FILES_DIR
 
 # Copy the JAR file and Bash script into the container
+
 COPY ./target/ElasticSearchUploader.jar  ./ElasticSearchUploader.jar
 COPY watch_directory.sh ./
 
