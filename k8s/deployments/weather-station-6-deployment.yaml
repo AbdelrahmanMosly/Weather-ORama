@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: weather-station-6
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: weather-station-6
+  template:
+    metadata:
+      labels:
+        app: weather-station-6
+    spec:
+      containers:
+        - env:
+            - name: DROP_RATE
+              value: "25"
+            - name: KAFKA_BROKER
+              value: kafka-service:9092
+            - name: KAFKA_TOPIC
+              value: weather
+            - name: POLL_EVERY
+              value: "1000"
+            - name: STATION_ID
+              value: "6"
+            - name: STATION_LATITUDE
+              value: "-52.8371"
+            - name: STATION_LONGITUDE
+              value: "47.1915"
+            - name: WEATHER_API
+              value: " "
+              
+          name: weather-station-6
+          image: weather-station
+          imagePullPolicy: Never
+          resources: {}
+      
+      restartPolicy: Always

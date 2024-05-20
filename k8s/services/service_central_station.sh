@@ -1,3 +1,3 @@
 #!/bin/bash
 
-kubectl apply -f central-service.yaml
+kubectl apply -f central-station-service.yaml
