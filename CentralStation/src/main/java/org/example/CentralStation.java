@@ -6,6 +6,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
 
+import org.example.bitcask.Bitcask;
+import org.example.bitcask.DataFileSegment;
+import org.example.bitcask.RecoveryManager;
+
 import org.example.models.WeatherStatus;
 import org.example.services.KafkaChannel;
 import org.example.archiver.WeatherStatusArchiver;
@@ -13,6 +17,7 @@ import org.example.archiver.WeatherStatusArchiver;
 
 
 public class CentralStation {
+    private static Bitcask bitcask;
     private static WeatherStatusArchiver archiver;
 
     private static Properties loadProperties() {
@@ -29,7 +34,7 @@ public class CentralStation {
 
     private static void process(WeatherStatus weatherStatus) {
         System.out.println(weatherStatus.getStatusTimestamp());
-        //bitcask
+        bitcask.put(weatherStatus);
         //elasticSearch
         //parquet
         try {
@@ -62,15 +67,25 @@ public class CentralStation {
 
 
     public static void main(String[] args) {
-        {
-            try {
-                String homeDirectory = System.getProperty("user.home");
-                String parquetFilesDirectory = homeDirectory + "/parquet-files";
-                archiver = new WeatherStatusArchiver(parquetFilesDirectory);
-                consume();
-            } catch (IOException e) {
-                System.err.println("Error initializing WeatherStatusArchiver: " + e.getMessage());
+        try {
+            if(DataFileSegment.readLastSegmentNumber() > 0){
+                bitcask = RecoveryManager.recover();
+            }else{
+                bitcask = new Bitcask();
             }
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+            bitcask = new Bitcask();
         }
+
+        try {
+            String homeDirectory = System.getProperty("user.home");
+            String parquetFilesDirectory = homeDirectory + "/parquet-files";
+            archiver = new WeatherStatusArchiver(parquetFilesDirectory);
+            consume();
+        } catch (IOException e) {
+            System.err.println("Error initializing WeatherStatusArchiver: " + e.getMessage());
+        }
+        
     }
 }
