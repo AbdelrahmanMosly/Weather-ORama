@@ -4,4 +4,4 @@ mvn clean
 # mvn dependency:copy-dependencies -DincludeScope=runtime
 mvn package -DskipTests
 
-docker build -t central-station:latest .
+docker build -t central-station:jfr .

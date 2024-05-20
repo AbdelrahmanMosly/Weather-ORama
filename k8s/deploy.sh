@@ -17,7 +17,7 @@ echo "Deploying Central Station..."
 ./deploy_central_station.sh
 
 echo "Deploying Weather Stations..."
-./deploy_weather_stations.sh
+./deploy_weather_stations.sh $1
 
 echo "Exposing Central Station..."
 minikube service central-station-service

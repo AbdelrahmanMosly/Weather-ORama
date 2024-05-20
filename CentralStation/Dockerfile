@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jdk-alpine
 
 WORKDIR /app
 
@@ -15,4 +15,4 @@ COPY ./src/main/resources/logback.xml /app/logback.xml
 # ENV PROPS_PATH=/app/app.properties
 
 
-ENTRYPOINT ["java", "-cp", "CentralStation.jar", "org.example.CentralStation"]
+ENTRYPOINT ["java", "-XX:StartFlightRecording:filename=dump.jfr", "-cp", "CentralStation.jar", "org.example.CentralStation"]

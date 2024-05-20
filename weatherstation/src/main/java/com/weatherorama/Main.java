@@ -37,9 +37,8 @@ public class Main {
         double latitude = Double.parseDouble(appProps.getProperty("STATION_LATITUDE", "-52.8371"));
         String weatherAPI = appProps.getProperty("WEATHER_API");
 
-        if(weatherAPI == null){
-            logger.error("No weather API was given. The station will shutdown");
-            System.exit(1);
+        if(weatherAPI == null || weatherAPI.isBlank()){
+            logger.error("No weather API was given. Will use random readings.");
         }
 
         WeatherStation weatherStation = new WeatherStationBuilder()

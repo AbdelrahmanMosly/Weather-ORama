@@ -6,8 +6,9 @@ import com.weatherorama.weatherstation.mocks.MockWeatherSensor;
 public class WeatherSensorFactory {
 
     public static WeatherSensor getWeatherSensor(String weatherAPI, double longitude, double latitude) {
-        return weatherAPI.isBlank()? new MockWeatherSensor():
-                                     new OpenMeteoService(weatherAPI, longitude, latitude);
+        return (weatherAPI == null || weatherAPI.isBlank())?
+                                    new MockWeatherSensor():
+                                    new OpenMeteoService(weatherAPI, longitude, latitude);
     }
 
 }
