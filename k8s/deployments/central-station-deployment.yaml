@@ -36,7 +36,7 @@ spec:
           image: central-station:jfr
           imagePullPolicy: Never
           command: ["/bin/sh"]
-          args: ["-c", "java -XX:StartFlightRecording:duration=600s,filename=dump.jfr -cp CentralStation.jar org.example.CentralStation"]
+          args: ["-c", "java -XX:StartFlightRecording:duration=600s,file-threshold=100ns,filename=dump.jfr -cp CentralStation.jar org.example.CentralStation"]
           volumeMounts:
             - mountPath: /app/data
               name: shared-volume
