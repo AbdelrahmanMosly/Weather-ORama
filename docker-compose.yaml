@@ -20,17 +20,6 @@ services:
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
     depends_on:
       - zookeeper
-
-  kafka-init:
-    image: kafka-init
-    container_name: kafka-init
-    environment:
-      - KAFKA=kafka:${KAFKA_PORT}
-      - WEATHER_TOPIC=${WEATHER_TOPIC}
-      - RAIN_TOPIC=${RAIN_TOPIC}
-    command: ["/bin/sh", "-x", "./entrypoint.sh"]
-    depends_on:
-      - kafka
     
   central-station:
     image: central-station
@@ -52,11 +41,11 @@ services:
       - shared-volume:${SHARED_VOLUME}
 
     depends_on:
-      - kafka-init
+      - kafka
 
 
   elastic-kibana:
-    image: docker.io/nshou/elasticsearch-kibana:latest
+    image: docker.io/nshou/elasticsearch-kibana:kibana7
     container_name: elastic-kibana
     environment:
       - SSL_MODE=false
@@ -91,7 +80,7 @@ services:
       - KAFKA_TOPIC=${WEATHER_TOPIC}
       - WEATHER_API=${WEATHER_API}
     depends_on:
-      - kafka-init
+      - kafka
 
   weather-station-1:
       image: weather-station
@@ -106,7 +95,7 @@ services:
         - KAFKA_TOPIC=${WEATHER_TOPIC}
         - WEATHER_API=${WEATHER_API}
       depends_on:
-        - kafka-init
+        - kafka
 
   weather-station-2:
       image: weather-station
@@ -121,7 +110,7 @@ services:
         - KAFKA_TOPIC=${WEATHER_TOPIC}
         - WEATHER_API=${WEATHER_API}
       depends_on:
-        - kafka-init
+        - kafka
 
   weather-station-3:
       image: weather-station
@@ -136,7 +125,7 @@ services:
         - KAFKA_TOPIC=${WEATHER_TOPIC}
         - WEATHER_API=${WEATHER_API}
       depends_on:
-        - kafka-init
+        - kafka
 
   weather-station-4:
       image: weather-station
@@ -151,7 +140,7 @@ services:
         - KAFKA_TOPIC=${WEATHER_TOPIC}
         - WEATHER_API=${WEATHER_API}
       depends_on:
-        - kafka-init
+        - kafka
 
 volumes:
   shared-volume:

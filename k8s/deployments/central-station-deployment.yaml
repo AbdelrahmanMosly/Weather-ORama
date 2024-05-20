@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.26.0 (40646f47)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: central-station
+  name: central-station
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: central-station
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.26.0 (40646f47)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: central-station
+    spec:
+      containers:
+        - env:
+            - name: BATCH_SIZE
+              value: "100"
+            - name: BITCASK_DIR
+              value: /app/data/bitcask
+            - name: COMPACT_INTERVAL
+              value: "60000"
+            - name: GROUP_ID
+              value: central-station
+            - name: HUMIDITY_THRESHOLD
+              value: "70"
+            - name: KAFKA_BROKER
+              value: kafka:9092
+            - name: MAX_OBJECTS_PER_SEGMENT
+              value: "128"
+            - name: PARQUET_DIR
+              value: /app/data/parquet
+            - name: RAIN_TOPIC
+              value: rain
+            - name: SNAPSHOT_INTERVAL
+              value: "300000"
+            - name: WEATHER_TOPIC
+              value: weather
+          image: central-station
+          name: central-station
+          resources: {}
+          volumeMounts:
+            - mountPath: /app/data
+              name: shared-volume
+      restartPolicy: Always
+      volumes:
+        - name: shared-volume
+          persistentVolumeClaim:
+            claimName: shared-volume
+status: {}

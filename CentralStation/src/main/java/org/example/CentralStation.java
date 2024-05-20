@@ -1,11 +1,10 @@
 package org.example;
 
-import java.io.BufferedWriter;
 import java.io.FileInputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -16,6 +15,11 @@ import org.example.bitcask.RecoveryManager;
 import org.example.models.WeatherStatus;
 import org.example.services.KafkaChannel;
 import org.example.services.RainWatcher;
+import org.apache.kafka.clients.admin.Admin;
+import org.apache.kafka.clients.admin.AdminClientConfig;
+import org.apache.kafka.clients.admin.CreateTopicsResult;
+import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.common.KafkaFuture;
 import org.example.archiver.WeatherStatusArchiver;
 
 
@@ -54,8 +58,26 @@ public class CentralStation {
     }
 
     private static void consume() {
-        String weatherTopic = appProps.getProperty("WEATHER_TOPIC", "test");
-        String rainTopic = appProps.getProperty("RAIN_TOPIC", "rain-test");
+        String weatherTopicName = appProps.getProperty("WEATHER_TOPIC", "test");
+        String rainTopicName = appProps.getProperty("RAIN_TOPIC", "rain-test");
+
+        Properties properties = new Properties();
+        properties.put(
+        AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, appProps.getProperty("KAFKA_BROKER", "localhost:9094"));
+        try (Admin admin = Admin.create(properties)) {
+            int partitions = 1;
+            short replicationFactor = 1;
+            NewTopic weatherTopic = new NewTopic(weatherTopicName, partitions, replicationFactor);
+            NewTopic rainTopic = new NewTopic(weatherTopicName, partitions, replicationFactor);
+
+            
+            admin.createTopics(List.of(weatherTopic, rainTopic));
+
+            // KafkaFuture<Void> future = result.values().get(weatherTopicName);
+            // future.get();
+        } catch (Exception e) {
+            System.err.println("Error creating topic: " + e.getMessage());
+        }
 
         
         String kafkaBroker = appProps.getProperty("KAFKA_BROKER", "localhost:9094");
@@ -63,10 +85,10 @@ public class CentralStation {
         int humidityThreshold = Integer.parseInt(appProps.getProperty("HUMIDITY_THRESHOLD", "70"));
 
         RainWatcher rainWatcher = new RainWatcher(kafkaBroker, groupId);
-        rainWatcher.buildWatcher(weatherTopic, rainTopic, humidityThreshold);
+        rainWatcher.buildWatcher(weatherTopicName, rainTopicName, humidityThreshold);
 
 
-        KafkaChannel channel = new KafkaChannel(kafkaBroker, weatherTopic, groupId);
+        KafkaChannel channel = new KafkaChannel(kafkaBroker, weatherTopicName, groupId);
 
         try {
             while (true) {
@@ -86,6 +108,7 @@ public class CentralStation {
 
         {
             loadProperties();
+
             try {
                 Files.createDirectories(Paths.get(appProps.getProperty("BITCASK_DIR", "bitcask")));
                 Files.createDirectories(Paths.get(appProps.getProperty("PARQUET_DIR", "parquet")));
