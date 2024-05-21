@@ -6,7 +6,6 @@ rm -r weather_stations
 mkdir weather_stations
 
 n=${1:-10}
-echo $n
 n=$(($n > 10 ? 10 : $n))
 
 python3 weather_station_generator.py $n
