@@ -44,7 +44,7 @@ public class RainWatcher {
                                                     })
                                                     .filter((key, value) -> value.getHumidity() > humidityThreshold)
                                                     .map((key, value) -> {
-                                                        return new KeyValue<String, String>(key, "It's raining Tacos at Station " + value.getStationId() + ".");
+                                                        return new KeyValue<String, String>(key, "It's raining at Station " + value.getStationId() + ".");
                                                     });
 
         rainStream.to(rainTopic);

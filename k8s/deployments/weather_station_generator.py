@@ -4,7 +4,7 @@ import os
 REPLICAS = "1"
 KAFKA_BROKER = "kafka-service:9092"
 KAFKA_TOPIC = "weather"
-WEATHER_API = "\" \""
+WEATHER_API = "https://api.open-meteo.com/v1/forecast"
 RESTART_POLICY = "Always"
 
 class WeatherStation:
@@ -37,19 +37,18 @@ if __name__ == "__main__":
         print("Usage: python weather_station_generator.py <n>")
         sys.exit(1)
 
-    print(sys.argv)
     n = int(sys.argv[1])
     weather_stations = [
         WeatherStation(0, 47.1915, -52.8371),
-        WeatherStation(1, 1, 1),
-        WeatherStation(2, 2, 2),
-        WeatherStation(3, 3, 3),
-        WeatherStation(4, 47.1915, -52.8371),
-        WeatherStation(5, 5, 5),
-        WeatherStation(6, 1, 1),
-        WeatherStation(7, 2, 2),
-        WeatherStation(8, 3, 3),
-        WeatherStation(9, 47.1915, -52.8371),
+        WeatherStation(1, 31.2065, 29.9249),
+        WeatherStation(2, 31.6100, 25.9248),
+        WeatherStation(3, 30.0232, 31.2351),
+        WeatherStation(4, 31.2558, 32.2929),
+        WeatherStation(5, 30.0690, 31.3121),
+        WeatherStation(6, 48.8415, 2.2531),
+        WeatherStation(7, 51.4926, 7.4518),
+        WeatherStation(8, 40.45304, -3.6883),
+        WeatherStation(9, 51.55604, -0.2796),
     ]
     os.chdir(os.path.abspath(os.path.dirname(sys.argv[0])))
 
