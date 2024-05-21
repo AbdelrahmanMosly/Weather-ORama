@@ -52,7 +52,6 @@ if __name__ == "__main__":
         WeatherStation(9, 47.1915, -52.8371),
     ]
     os.chdir(os.path.abspath(os.path.dirname(sys.argv[0])))
-    print(os.listdir())
 
     if(n > len(weather_stations)):
         print(f"Only {weather_stations} will be generated instead of {n}.")
