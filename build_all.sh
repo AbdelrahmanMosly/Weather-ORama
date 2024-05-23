@@ -2,10 +2,8 @@
 
 cd CentralStation
 ./build.sh
-cd ../weatherstation
-./build.sh
 
-cd ../kafka
+cd ../weatherstation
 ./build.sh
 
 cd ../ElasticSearchUploader
