@@ -43,7 +43,7 @@ public class KafkaChannel {
         ArrayList<WeatherStatus> result = new ArrayList<>();
         records.forEach(record -> {
             result.add(this.gson.fromJson(record.value(), WeatherStatus.class));
-            System.out.println("Received message: " + record.key() + " : " + record.value());
+            // System.out.println("Received message: " + record.key() + " : " + record.value());
         });
         return result;
     }

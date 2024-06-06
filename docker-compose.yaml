@@ -1,0 +1,146 @@
+version: "2"
+
+services:
+  zookeeper:
+    image: docker.io/bitnami/zookeeper:3.9
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+  kafka:
+    image: docker.io/bitnami/kafka:3.4
+    container_name: kafka
+    ports:
+      - "9094:9094"
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:${KAFKA_PORT},CONTROLLER://:9093,EXTERNAL://:9094
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:${KAFKA_PORT},EXTERNAL://localhost:9094
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
+    depends_on:
+      - zookeeper
+    
+  central-station:
+    image: central-station
+    container_name: central-station
+    environment:
+      - WEATHER_TOPIC=${WEATHER_TOPIC}
+      - RAIN_TOPIC=${RAIN_TOPIC}
+      - HUMIDITY_THRESHOLD=70
+      - KAFKA_BROKER=kafka:${KAFKA_PORT}
+      - GROUP_ID=central-station
+      - BATCH_SIZE=100
+      - PARQUET_DIR=${SHARED_VOLUME}/${PARQUET_LOCATION}
+      - BITCASK_DIR=${SHARED_VOLUME}/${BITCASK_LOCATION}
+      - MAX_OBJECTS_PER_SEGMENT=128
+      - COMPACT_INTERVAL=60000
+      - SNAPSHOT_INTERVAL=300000
+
+    volumes:
+      - shared-volume:${SHARED_VOLUME}
+
+    depends_on:
+      - kafka
+
+
+  elastic-kibana:
+    image: docker.io/nshou/elasticsearch-kibana:kibana7
+    container_name: elastic-kibana
+    environment:
+      - SSL_MODE=false
+    ports:
+      - "5601:5601"
+
+  elastic-uploader:
+    image: elastic-uploader
+    container_name: elastic-uploader
+    environment:
+      - PARQUET_FILES_DIR=${SHARED_VOLUME}/${PARQUET_LOCATION}
+      - ELASTICSEARCH_HOST=elastic-kibana
+      - ELASTICSEARCH_PORT=9200
+      - ELASTICSEARCH_UPLOADER_JAR=/app/ElasticSearchUploader.jar
+    volumes:
+      - shared-volume:${SHARED_VOLUME}
+    depends_on: 
+      - central-station
+      - elastic-kibana
+
+
+  weather-station-0:
+    image: weather-station
+    container_name: weather-station-0
+    environment:
+      - POLL_EVERY=1000
+      - STATION_ID=0
+      - STATION_LONGITUDE=47.1915
+      - STATION_LATITUDE=-52.8371
+      - DROP_RATE=25
+      - KAFKA_BROKER=kafka:${KAFKA_PORT}
+      - KAFKA_TOPIC=${WEATHER_TOPIC}
+      - WEATHER_API=${WEATHER_API}
+    depends_on:
+      - kafka
+
+  weather-station-1:
+      image: weather-station
+      container_name: weather-station-1
+      environment:
+        - POLL_EVERY=1000
+        - STATION_ID=1
+        - STATION_LONGITUDE=28.1915
+        - STATION_LATITUDE=-19.8371
+        - DROP_RATE=10
+        - KAFKA_BROKER=kafka:${KAFKA_PORT}
+        - KAFKA_TOPIC=${WEATHER_TOPIC}
+        - WEATHER_API=${WEATHER_API}
+      depends_on:
+        - kafka
+
+  weather-station-2:
+      image: weather-station
+      container_name: weather-station-2
+      environment:
+        - POLL_EVERY=1000
+        - STATION_ID=2
+        - STATION_LONGITUDE=28.1915
+        - STATION_LATITUDE=-19.8371
+        - DROP_RATE=30
+        - KAFKA_BROKER=kafka:${KAFKA_PORT}
+        - KAFKA_TOPIC=${WEATHER_TOPIC}
+        - WEATHER_API=${WEATHER_API}
+      depends_on:
+        - kafka
+
+  weather-station-3:
+      image: weather-station
+      container_name: weather-station-3
+      environment:
+        - POLL_EVERY=1000
+        - STATION_ID=3
+        - STATION_LONGITUDE=28.1915
+        - STATION_LATITUDE=-19.8371
+        - DROP_RATE=5
+        - KAFKA_BROKER=kafka:${KAFKA_PORT}
+        - KAFKA_TOPIC=${WEATHER_TOPIC}
+        - WEATHER_API=${WEATHER_API}
+      depends_on:
+        - kafka
+
+  weather-station-4:
+      image: weather-station
+      container_name: weather-station-4
+      environment:
+        - POLL_EVERY=1000
+        - STATION_ID=4
+        - STATION_LONGITUDE=28.1915
+        - STATION_LATITUDE=-19.8371
+        - DROP_RATE=20
+        - KAFKA_BROKER=kafka:${KAFKA_PORT}
+        - KAFKA_TOPIC=${WEATHER_TOPIC}
+        - WEATHER_API=${WEATHER_API}
+      depends_on:
+        - kafka
+
+volumes:
+  shared-volume:

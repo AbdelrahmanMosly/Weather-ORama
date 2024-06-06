@@ -6,12 +6,13 @@ import java.io.*;
 import java.util.*;
 
 public class CompactService {
-    private static final long COMPACT_INTERVAL = 60 * 1000; // 1 minute
+    private static final long COMPACT_INTERVAL = System.getenv("COMPACT_INTERVAL") == null?
+                                                    60 * 1000: Long.parseLong(System.getenv("COMPACT_INTERVAL")); // 1 minute
     private int lastCompactedSegment;
     private static final String COMPACT_PREFIX = "compacted_";
     private static final String Hint_PREFIX = "hint_";
-    private static final String COMPACTED_DIRECTORY = "compacted";
-    private static final String HINT_DIRECTORY = "hints";
+    private static final String COMPACTED_DIRECTORY = System.getenv("BITCASK_DIR") + "/compacted";
+    private static final String HINT_DIRECTORY = System.getenv("BITCASK_DIR") + "/hints";
     private final Bitcask bitcask;
 
     public CompactService(Bitcask bitcask, int lastCompactedSegment) {

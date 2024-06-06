@@ -9,10 +9,11 @@ import java.util.Map;
 
 @Getter
 public class DataFileSegment {
-    public static final int MAX_OBJECTS_PER_SEGMENT = 128;
-    public static final String SEGMENT_DIRECTORY = "segments";
+    public static final int MAX_OBJECTS_PER_SEGMENT = System.getenv("MAX_OBJECTS_PER_SEGMENT") == null ?
+                                                         128 : Integer.parseInt(System.getenv("MAX_OBJECTS_PER_SEGMENT"));
+    public static final String SEGMENT_DIRECTORY = System.getenv("BITCASK_DIR") + "/segments";
     public static final String SEGMENT_PREFIX = "segment_";
-    private static final String SEGMENT_NUMBER_FILE = "last_segment_number.txt";
+    private static final String SEGMENT_NUMBER_FILE = System.getenv("BITCASK_DIR") + "/last_segment_number.txt";
 
     private final String segmentFileName;
     private final int segmentNumber;

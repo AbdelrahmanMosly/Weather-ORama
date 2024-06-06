@@ -17,12 +17,14 @@ import java.nio.file.Paths;
 public class ParquetToElasticSearchUploader {
 
     public static void main(String[] args) throws IOException {
-        if (args.length != 1) {
-            System.err.println("Usage: ParquetToElasticSearchUploader <path_to_parquet_file>");
+        if (args.length != 3) {
+            System.err.println("Usage: ParquetToElasticSearchUploader <path_to_parquet_file> <elastic_host> <elastic_port>");
             System.exit(1);
         }
 
         String parquetFilePath = args[0];
+        String elasticHost = args[1];
+        int elasticPort = Integer.parseInt(args[2]);
         String index = getIndexFromPath(parquetFilePath);
 
         // Initialize SparkSession
@@ -39,7 +41,7 @@ public class ParquetToElasticSearchUploader {
 
         // Elasticsearch REST client setup
         RestClient restClient = RestClient.builder(
-                new HttpHost("localhost", 9200, "http")).build();
+                new HttpHost(elasticHost, elasticPort, "http")).build();
 
         // Prepare Elasticsearch bulk API request
         StringBuilder bulkRequest = new StringBuilder();

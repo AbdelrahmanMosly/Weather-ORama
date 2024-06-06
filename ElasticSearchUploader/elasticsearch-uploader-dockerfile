@@ -1,8 +1,8 @@
 # Use a base image with Java and inotify-tools installed
-FROM openjdk:11-jre-slim
+FROM eclipse-temurin:17-jre-alpine
 
 # Install inotify-tools
-RUN apt-get update && apt-get install -y inotify-tools
+RUN apk update && apk add --no-cache bash && apk add inotify-tools
 
 # Set the working directory in the container
 WORKDIR /app
@@ -14,11 +14,13 @@ ENV PARQUET_FILES_DIR=/home/parquet-files
 RUN mkdir -p $PARQUET_FILES_DIR
 
 # Copy the JAR file and Bash script into the container
-COPY ElasticSearchUploader.jar watch_directory.sh ./
+
+COPY ./target/ElasticSearchUploader.jar  ./ElasticSearchUploader.jar
+COPY watch_directory.sh ./
 
 # Make the Bash script executable
 RUN chmod +x watch_directory.sh
 
 # Command to run when the container starts
-CMD ["./watch_directory.sh"]
+CMD ["/bin/bash", "-c", "./watch_directory.sh"]
 

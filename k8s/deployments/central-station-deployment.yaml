@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: central-station
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: central-station
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: central-station
+    spec:
+    
+      volumes:
+        - name: shared-volume
+          emptyDir: {}
+
+
+      containers:
+        - name: elastic-kibana
+          env:
+            - name: SSL_MODE
+              value: "false"
+          image: nshou/elasticsearch-kibana:kibana7
+          imagePullPolicy: Never
+          
+          ports:
+            - containerPort: 5601
+          resources: {}
+# ========================================================
+        - name: central-station
+          image: central-station:jfr
+          imagePullPolicy: Never
+          command: ["/bin/sh"]
+          args: ["-c", "java -XX:StartFlightRecording:duration=600s,file-threshold=100ns,filename=dump.jfr -cp CentralStation.jar org.example.CentralStation"]
+          volumeMounts:
+            - mountPath: /app/data
+              name: shared-volume
+          resources: {}
+          env:
+            - name: BATCH_SIZE
+              value: "100"
+            - name: BITCASK_DIR
+              value: /app/data/bitcask
+            - name: COMPACT_INTERVAL
+              value: "60000"
+            - name: GROUP_ID
+              value: central-station
+            - name: HUMIDITY_THRESHOLD
+              value: "70"
+            - name: KAFKA_BROKER
+              value: kafka-service:9092
+            - name: MAX_OBJECTS_PER_SEGMENT
+              value: "128"
+            - name: PARQUET_DIR
+              value: /app/data/parquet
+            - name: RAIN_TOPIC
+              value: rain
+            - name: SNAPSHOT_INTERVAL
+              value: "300000"
+            - name: WEATHER_TOPIC
+              value: weather
+
+# ========================================================
+        - name: elastic-uploader 
+          env:
+            - name: ELASTICSEARCH_HOST
+              value: localhost
+            - name: ELASTICSEARCH_PORT
+              value: "9200"
+            - name: ELASTICSEARCH_UPLOADER_JAR
+              value: /app/ElasticSearchUploader.jar
+            - name: PARQUET_FILES_DIR
+              value: /app/data/parquet
+          image: elastic-uploader
+          imagePullPolicy: Never
+          resources: {}
+          volumeMounts:
+            - mountPath: /app/data
+              name: shared-volume
+
+      restartPolicy: Always
+

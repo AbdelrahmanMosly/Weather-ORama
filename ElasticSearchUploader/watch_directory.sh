@@ -12,7 +12,7 @@ handle_new_file() {
     # Run your JAR file with the new file as an argument
      java --add-opens=java.base/sun.nio.ch=ALL-UNNAMED \
          --add-exports=java.base/sun.nio.ch=ALL-UNNAMED \
-         -jar "$JAR_PATH" "$file_path"
+         -jar "$JAR_PATH" "$file_path" "$ELASTICSEARCH_HOST" "$ELASTICSEARCH_PORT"
 }
 
 # Export the function to make it available to the sub-shell

@@ -15,4 +15,5 @@ public class WeatherStatus implements Serializable {
     private String batteryStatus;
     private long statusTimestamp;
     private Weather weather;
+
 }

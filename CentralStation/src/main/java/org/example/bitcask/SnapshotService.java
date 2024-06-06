@@ -7,9 +7,10 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class SnapshotService {
-    public static final long SNAPSHOT_INTERVAL = 5 * 60 * 1000; // 5 minutes
+    public static final long SNAPSHOT_INTERVAL = System.getenv("SNAPSHOT_INTERVAL") == null?
+                                                    5 * 60 * 1000: Long.parseLong(System.getenv("SNAPSHOT_INTERVAL")); // 5 minutes
     private final Bitcask bitcask;
-    public static final String SNAPSHOT_DIRECTORY = "snapshot";
+    public static final String SNAPSHOT_DIRECTORY = System.getenv("BITCASK_DIR") + "/snapshot";
     public static final String SNAPSHOT_PREFIX = "snapshot_";
 
 

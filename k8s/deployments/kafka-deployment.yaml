@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      containers:
+        - env:
+            - name: KAFKA_CFG_ADVERTISED_LISTENERS
+              value: PLAINTEXT://kafka-service:9092,EXTERNAL://localhost:9094
+            - name: KAFKA_CFG_LISTENERS
+              value: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+            - name: KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP
+              value: CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
+            - name: KAFKA_CFG_ZOOKEEPER_CONNECT
+              value: zookeeper-service:2181
+          image: bitnami/kafka:3.4
+          imagePullPolicy: Never
+          name: kafka
+          ports:
+            - containerPort: 9092
+          resources: {}
+      restartPolicy: Always
+status: {}
