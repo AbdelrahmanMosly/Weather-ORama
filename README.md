@@ -17,7 +17,7 @@ The project addresses the challenge of efficiently processing and analyzing high
 ### Weather Station Integration
 
 - Integrated with the Open-Meteo API to simulate real-time weather data.
-- The mock fetches weather information such as temperature, humidity, and wind speed for specified locations.
+- The Weather Station mock fetches weather information such as temperature, humidity, and wind speed for specified locations.
 - Data is periodically sent to the Central Station system for storage and retrieval, mimicking the behavior of actual weather stations.
 
 ### Kafka Connection
