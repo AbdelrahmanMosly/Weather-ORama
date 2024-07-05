@@ -5,9 +5,9 @@
 The Weather Stations Monitoring project aims to efficiently process and analyze high-frequency data streams from distributed weather stations within the Internet of Things (IoT) context. This project was developed as part of the course "Designing Data Intensive Applications."
 
 ## Team Members
-- [Karim Alaa](https://github.com/Karim19Alaa)
-- [Abdelrahman Gad](https://github.com/abdelrahman-gad-alex)
 - [Abdelrahman Mosly](https://github.com/AbdelrahmanMosly)
+- [Abdelrahman Gad](https://github.com/abdelrahman-gad-alex)
+- [Karim Alaa](https://github.com/Karim19Alaa)
 ## Problem Statement
 
 The project addresses the challenge of efficiently processing and analyzing high-frequency data streams from distributed weather stations. It involves designing and implementing a robust system architecture comprising data acquisition, processing, archiving, and indexing stages. Additionally, the system integrates with the Open-Meteo API to enhance data sources. The primary goal is to develop a scalable and reliable weather monitoring system capable of handling diverse data types, ensuring data integrity, and enabling advanced analytics for weather forecasting and analysis.
